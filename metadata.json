@@ -1,0 +1,6 @@
+{
+  "name": "sublocaHope",
+  "description": "Plataforma de co-working e locação de consultórios para profissionais da saúde.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
