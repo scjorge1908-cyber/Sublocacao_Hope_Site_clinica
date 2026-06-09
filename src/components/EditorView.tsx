@@ -5,6 +5,7 @@ import {
   Laptop, Smartphone, Palette, Globe, Settings
 } from 'lucide-react';
 import { AdminSettings, Room } from '../types';
+import { getAmenityIcon, cleanAmenityLabel } from './BookingPageView';
 
 interface EditorViewProps {
   adminSettings: AdminSettings;
@@ -470,7 +471,12 @@ export default function EditorView({ adminSettings, rooms, onUpdateSettings, set
                           <img
                             src={room.images[0]}
                             alt={room.name}
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-cover transition-all"
+                            style={room.imageSettings ? {
+                              transform: `scale(${(room.imageSettings.zoom || 100) / 100}) rotate(${room.imageSettings.rotate || 0}deg)`,
+                              objectPosition: `${room.imageSettings.posX ?? 50}% ${room.imageSettings.posY ?? 50}%`,
+                              filter: `brightness(${room.imageSettings.brightness ?? 100}%) contrast(${room.imageSettings.contrast ?? 100}%)`
+                            } : undefined}
                             referrerPolicy="no-referrer"
                           />
                           {showRatings && (
@@ -487,12 +493,21 @@ export default function EditorView({ adminSettings, rooms, onUpdateSettings, set
                             <span className="text-[8px] font-black text-secondary uppercase tracking-wider bg-secondary/10 px-2 py-0.5 rounded">
                               {isExecutivo ? 'Executivo Luxo' : (isPremium ? 'Premium' : 'Standard')}
                             </span>
-                            <span className="text-[9px] text-[#42474e] font-semibold">📐 {room.size || '32m²'}</span>
                           </div>
 
                           <h4 className="font-sans font-extrabold text-[13px] text-primary truncate leading-tight">
                             {room.name}
                           </h4>
+
+                          <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[10px] text-brand-variant font-medium">
+                            {room.features.slice(0, 3).map((feat, i) => (
+                              <span key={i} className="flex items-center gap-1 whitespace-nowrap">
+                                {getAmenityIcon(feat, "w-3 h-3 text-secondary")}
+                                <span className="text-[9px]">{cleanAmenityLabel(feat)}</span>
+                                {i < Math.min(room.features.length, 3) - 1 && <span className="text-black/10 select-none ml-0.5">•</span>}
+                              </span>
+                            ))}
+                          </div>
 
                           <p className="font-sans text-[10px] text-brand-text text-brand-variant line-clamp-2 leading-relaxed">
                             {room.description}

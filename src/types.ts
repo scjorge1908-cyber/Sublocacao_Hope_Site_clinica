@@ -10,6 +10,14 @@ export interface Room {
   description: string;
   images: string[];
   features: string[];
+  imageSettings?: {
+    zoom?: number;
+    posX?: number;
+    posY?: number;
+    rotate?: number;
+    brightness?: number;
+    contrast?: number;
+  };
 }
 
 export interface Booking {

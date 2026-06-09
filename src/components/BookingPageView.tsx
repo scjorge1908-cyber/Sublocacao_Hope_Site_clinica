@@ -21,10 +21,44 @@ import {
   CheckSquare,
   CreditCard,
   Lock,
-  Copy
+  Copy,
+  Wifi, 
+  Coffee, 
+  Car, 
+  Bath, 
+  Wind, 
+  VolumeX, 
+  Sofa, 
+  Gamepad, 
+  Video, 
+  ArrowUpDown,
+  Toilet
 } from 'lucide-react';
 import { Room, Booking, AdminSettings } from '../types';
 import { TIME_SLOTS, INITIAL_ROOMS } from '../data';
+
+export function getAmenityIcon(label: string, className = "w-3.5 h-3.5 text-black") {
+  const norm = label.toLowerCase();
+  if (norm.includes('wi-fi') || norm.includes('wifi')) return <Wifi className={className} />;
+  if (norm.includes('copa') || norm.includes('café') || norm.includes('cafe')) return <Coffee className={className} />;
+  if (norm.includes('estacionamento')) return <Car className={className} />;
+  if (norm.includes('banheiro')) return <Toilet className={className} />;
+  if (norm.includes('climatizado') || norm.includes('ar-condicionado')) return <Wind className={className} />;
+  if (norm.includes('acústico') || norm.includes('isolamento')) return <VolumeX className={className} />;
+  if (norm.includes('recepção') || norm.includes('espera')) return <Sofa className={className} />;
+  if (norm.includes('infantil') || norm.includes('brinquedo') || norm.includes('lúdicos')) return <Gamepad className={className} />;
+  if (norm.includes('videoconferência') || norm.includes('video')) return <Video className={className} />;
+  if (norm.includes('elevador')) return <ArrowUpDown className={className} />;
+  return <HelpCircle className={className} />;
+}
+
+export function cleanAmenityLabel(label: string): string {
+  return label
+    .replace(/[📶☕🚗🚻❄️🔇🛎️🧸📹🛗]/g, '')
+    .replace('Café', 'Copa')
+    .replace('cafe', 'copa')
+    .trim();
+}
 
 // Calendar months
 const MONTHS_PT = [
@@ -538,6 +572,47 @@ export default function BookingPageView({
     bookings.forEach((b) => {
       onAddBooking(b);
     });
+
+    // Notify payment via webhook
+    try {
+      const totalValue = bookings.reduce((sum, b) => sum + b.totalValue, 0);
+      const hasTaxaFlex = reimbursementInsurance && activeProtectedSlotsCount > 0;
+      const itemsList: Array<{ data: string; hora: string; valor: string }> = [];
+      
+      bookings.forEach((b) => {
+        const parts = b.dateKey.split('-');
+        const formattedDate = parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : b.dateKey;
+        
+        b.timeSlots.forEach((slot) => {
+          itemsList.push({
+            data: formattedDate,
+            hora: slot,
+            valor: b.pricePerHour.toFixed(2).replace('.', ',')
+          });
+        });
+      });
+
+      const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbwuCOimY2_91TvyrTwjzWVGSfexIQ0lg1DGeksYwWdo3_Vge5oGJMGnvgUJA8wmZvM/exec";
+      fetch(WEBHOOK_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tipo: "pagamento",
+          profissionalNome: professionalName || bookings[0]?.professionalName || 'Profissional',
+          valorTotal: totalValue.toFixed(2).replace('.', ','),
+          formaPagamento: selectedPaymentMethod === 'pix' ? 'pix' : 'cartao',
+          taxaFlexivel: hasTaxaFlex ? "Sim" : "Não",
+          valorTaxa: (activeProtectedSlotsCount * 9.90).toFixed(2).replace('.', ','),
+          itens: itemsList
+        })
+      })
+      .then(() => console.log("Pagamento notificado com sucesso!"))
+      .catch((err) => console.error("Erro ao notificar pagamento via webhook:", err));
+    } catch (e) {
+      console.error("Erro ao preparar notificação de pagamento:", e);
+    }
+
     setIsPaid(true);
   };
 
@@ -578,7 +653,7 @@ export default function BookingPageView({
             </h1>
             
             <p className="font-sans text-[#cbd5e1] text-xs sm:text-sm leading-relaxed max-w-3xl">
-              Esqueça despesas com aluguel fixo e condomínio. Subloque consultórios sofisticados e totalmente regulamentados pela ANVISA com total autonomia jurídica.
+              Esqueça despesas com aluguel fixo e condomínio. Subloque um espaço acolhedor e de alta qualidade, com fácil acesso para você e seus pacientes, portaria 24h e um ambiente totalmente pronto para o seu atendimento.
             </p>
 
             {/* Simplicity Proof timeline (Passo-a-Passo de 4 Segundos) */}
@@ -595,15 +670,15 @@ export default function BookingPageView({
                 <div className="bg-white/5 hover:bg-white/10 transition-colors border border-white/5 p-3 rounded-xl flex gap-2.5 items-center">
                   <div className="w-8 h-8 rounded-lg bg-secondary/20 text-secondary-hover flex items-center justify-center font-black font-sans text-xs shrink-0">2</div>
                   <div>
-                    <h4 className="font-sans font-bold text-xs text-white leading-none">Marque os Slots</h4>
+                    <h4 className="font-sans font-bold text-xs text-white leading-none">Marque a hora</h4>
                     <span className="text-[9px] text-slate-400 block mt-0.5">Selecione nas salas</span>
                   </div>
                 </div>
                 <div className="bg-white/5 hover:bg-white/10 transition-colors border border-white/5 p-3 rounded-xl flex gap-2.5 items-center">
                   <div className="w-8 h-8 rounded-lg bg-teal-500/20 text-teal-400 flex items-center justify-center font-black font-sans text-xs shrink-0">✓</div>
                   <div>
-                    <h4 className="font-sans font-bold text-xs text-white leading-none">Atenda Pronto</h4>
-                    <span className="text-[9px] text-slate-400 block mt-0.5">Sem taxas extras</span>
+                    <h4 className="font-sans font-bold text-xs text-white leading-none">E finalize o agendamento</h4>
+                    <span className="text-[9px] text-slate-400 block mt-0.5">Rápido e simples</span>
                   </div>
                 </div>
               </div>
@@ -913,7 +988,12 @@ export default function BookingPageView({
                 <img
                   src={room.images[0]}
                   alt={room.name}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  className="w-full h-full object-cover transition-all"
+                  style={room.imageSettings ? {
+                    transform: `scale(${(room.imageSettings.zoom || 100) / 100}) rotate(${room.imageSettings.rotate || 0}deg)`,
+                    objectPosition: `${room.imageSettings.posX ?? 50}% ${room.imageSettings.posY ?? 50}%`,
+                    filter: `brightness(${room.imageSettings.brightness ?? 100}%) contrast(${room.imageSettings.contrast ?? 100}%)`
+                  } : undefined}
                   referrerPolicy="no-referrer"
                 />
                 
@@ -933,37 +1013,23 @@ export default function BookingPageView({
               </div>
 
               {/* Room Info Content Body (TARGETED CSS SELECTOR 3 STYLING IN CLASS) */}
-              <div className="p-5 flex-grow space-y-4 bg-slate-50/30 border-t border-outline-alt/10 rounded-b-3xl transition-colors">
-                <div className="space-y-1">
+              <div className="p-5 flex-grow space-y-3 bg-slate-50/30 border-t border-outline-alt/10 rounded-b-3xl transition-colors text-left">
+                <div className="space-y-1.5">
                   <h3 className="font-sans font-extrabold text-lg text-primary leading-snug">
                     {room.name}
                   </h3>
-                  <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-brand-variant font-medium">
-                    <span className="flex items-center gap-1">
-                      <Maximize className="w-3.5 h-3.5 text-secondary" />
-                      {room.size}
-                    </span>
-                    <span>•</span>
-                    <span className="flex items-center gap-1">
-                      <Users className="w-3.5 h-3.5 text-secondary" />
-                      {room.capacity}
-                    </span>
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-brand-variant font-medium">
+                    {room.features.map((feat, i) => (
+                      <span key={i} className="flex items-center gap-1.5 whitespace-nowrap">
+                        {getAmenityIcon(feat, "w-3.5 h-3.5 text-secondary")}
+                        <span>{cleanAmenityLabel(feat)}</span>
+                        {i < room.features.length - 1 && <span className="text-black/15 ml-1 select-none">•</span>}
+                      </span>
+                    ))}
                   </div>
                 </div>
 
-                {/* Elegant Black & White Amenities Icons */}
-                <div className="flex flex-wrap gap-1.5 py-1">
-                  {room.features.map((feat, i) => (
-                    <span 
-                      key={i} 
-                      className="inline-flex items-center gap-1 text-[11px] font-semibold text-black bg-white border border-black/15 shadow-2xs px-2.5 py-1 rounded-full transition-transform hover:scale-105"
-                    >
-                      {feat}
-                    </span>
-                  ))}
-                </div>
-
-                <p className="text-xs text-brand-variant line-clamp-2">
+                <p className="text-xs text-brand-variant line-clamp-2 leading-relaxed">
                   {room.description}
                 </p>
 

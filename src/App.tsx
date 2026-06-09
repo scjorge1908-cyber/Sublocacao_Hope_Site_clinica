@@ -18,7 +18,7 @@ export default function App() {
     const saved = localStorage.getItem('sublocahope_rooms');
     if (saved) {
       const parsed = JSON.parse(saved);
-      if (parsed && parsed.length >= 6) {
+      if (parsed && parsed.length > 0) {
         return parsed;
       }
     }
@@ -93,6 +93,19 @@ export default function App() {
 
   // Track currently selected room for booking page
   const [selectedRoomId, setSelectedRoomId] = useState<string>('room-a04');
+
+  // Support dynamic deep linking to a specific room agenda
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const salaId = params.get('sala');
+    if (salaId) {
+      const exists = rooms.some(r => r.id === salaId);
+      if (exists) {
+        setSelectedRoomId(salaId);
+        setView('booking');
+      }
+    }
+  }, [rooms]);
 
   // Persistence to localstorage
   useEffect(() => {

@@ -51,6 +51,7 @@ export default function ProfessionalPortalView({
   const [isAppSimulatorOpen, setIsAppSimulatorOpen] = useState(false);
   const [isAccessDetailsOpen, setIsAccessDetailsOpen] = useState<Booking | null>(null);
   const [isCardUpdateOpen, setIsCardUpdateOpen] = useState(false);
+  const [cancellingBookingId, setCancellingBookingId] = useState<string | null>(null);
 
   // Profile Form States
   const [editName, setEditName] = useState(activeUser.name);
@@ -587,18 +588,37 @@ export default function ProfessionalPortalView({
                               >
                                 <Eye className="w-3.5 h-3.5" />
                               </button>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  if (confirm(`Deseja cancelar seu agendamento do consultório "${b.roomName}" no dia ${b.date}?`)) {
-                                    onCancelBooking(b.id);
-                                  }
-                                }}
-                                className="px-2 py-1.5 border border-slate-200 text-rose-600 hover:bg-rose-50 rounded-lg text-[10px]"
-                                title="Cancelar reserva avulsa"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
+                              {cancellingBookingId === b.id ? (
+                                <div className="inline-flex items-center gap-1 bg-red-50 border border-red-200 p-1 rounded-lg animate-fade-in">
+                                  <span className="text-[8px] text-red-700 font-bold select-none whitespace-nowrap">Cancelar?</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      onCancelBooking(b.id);
+                                      setCancellingBookingId(null);
+                                    }}
+                                    className="px-1.5 py-0.5 bg-red-600 hover:bg-red-700 text-white font-sans font-bold text-[8px] rounded cursor-pointer transition-all"
+                                  >
+                                    Sim
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setCancellingBookingId(null)}
+                                    className="px-1.5 py-0.5 bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 font-sans font-bold text-[8px] rounded cursor-pointer transition-all"
+                                  >
+                                    Não
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => setCancellingBookingId(b.id)}
+                                  className="px-2 py-1.5 border border-slate-200 text-rose-600 hover:bg-rose-50 rounded-lg text-[10px]"
+                                  title="Cancelar reserva avulsa"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              )}
                             </>
                           )}
                           {isCancelled && (

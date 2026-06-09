@@ -1,16 +1,18 @@
-import { useState, useRef, FormEvent } from 'react';
+import React, { useState, useRef, FormEvent, useEffect } from 'react';
 import { 
   Key, Database, FileEdit, LayoutDashboard, Search, Calendar, CreditCard, 
   Settings, CheckCircle, TrendingUp, Sparkles, Upload, Eye, Trash2, ShieldCheck, RefreshCw,
   Plus, Coffee, Music, Wind, Gamepad, MapPin, Users, Bath, Sofa, Check, X, ShieldAlert, User, Phone, FileText,
-  Smartphone, QrCode, Apple, Star
+  Smartphone, QrCode, Apple, Star, Wifi, Car, VolumeX, Baby, Video, ArrowUpDown, HelpCircle, Maximize, Toilet,
+  SlidersHorizontal, Camera, Image
 } from 'lucide-react';
 import { Booking, AdminSettings, Room, ProfessionalProfile } from '../types';
 import EditorView from './EditorView';
+import { getAmenityIcon, cleanAmenityLabel } from './BookingPageView';
 
 export const AMENITIES_LIST = [
   { label: 'Wi-Fi', emoji: '📶' },
-  { label: 'Café', emoji: '☕' },
+  { label: 'Copa', emoji: '☕' },
   { label: 'Estacionamento', emoji: '🚗' },
   { label: 'Banheiro', emoji: '🚻' },
   { label: 'Climatizado', emoji: '❄️' },
@@ -20,6 +22,23 @@ export const AMENITIES_LIST = [
   { label: 'Videoconferência', emoji: '📹' },
   { label: 'Elevador', emoji: '🛗' }
 ];
+
+export const CLINIC_PRESETS = [
+  { name: 'Pediatria / Infantil', url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAoW3_3-lK3ixFkeSUuv13KklvQeADvFsiWG-M2JXqkPo3zc351XK-v-QY5B6WZhMFYcdux00x9OQx8JQ3t81CRSw19hEzWMubmMom5eMM-9Jwz14jeGfJBQe8fV4f5h3ioRQdGt2JHH92cElgmq9VuAOcTw7-9w7x1_cltDMQPUqRRNV5kEMi9GPzjkXYtGddkTSaSfaEtayWZ4p31vYarH7bg2go2QjYVqVzV4JvlyzqGLQH-dZynak73vV5-YBhcm0oWpMxUf0w' },
+  { name: 'Psicologia Clássica', url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBEA5kcWz6rbF7fVL_dVyf4kNliZh8hHnoTBjUNP-IqEaUPjRkWwbmMiVLt0-qmPlAPb3WEBZnuKKxtPPdeGGyuE_itqi6_ADsV6lfhB-fI-90aTCt_Kyju8NQXl4klyixYzoi2wZ9JjTPioHfHvMoc5a5FtygotQs05VASNttBMqHVm6ehI5O4Z4R2xHI1I4FcB8tiWzzVTW8agz70qJ57GdPnq75ElzCPEckGi-yYNWCFvqxTKKYq9S-f0Srazuq69vYW1Xa02jA' },
+  { name: 'Multidisciplinar Geral', url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBq8jn8GNPvhb_gIC4xr06rraY39VlEUEH-0vSJU6AYujIG9DPkiUF1zqgzTX4ed3d_R2wOdBXRkiOMI1Y9BO9LzgJkVhgoETydsTV8dowqy_Z9JNSoh_SiVLn0ilBjJowhkrFI_0mgfjbkVy-Qq32p4dqZVc0fNwPvvGoy_Z8ShEwGo0oyYQgb5AdRSb09mKV_O1pwN0N-wglRmLTKXEAy6PFRZCkL8A7B8oN3s_OrsOv7CY8nPWXlcPeRWSvDO5P2k_UvMbJ51tU' },
+  { name: 'Mesa Reuniões Clinica', url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCpK_ydxVzclnmYMUAi0fsi4DzKI6JXpLmaD9G4jAA8rUDn6AyhwunUa4UddC_1JNYOekP_W2E3pKLnY14-QXm8nN9PhbUkw2T4tMo4n__v_aOuyEIuudaAeqR3IjtbOc3sKmovzJxlZF0_oLpSFqedv8UtqQPeoiR0TfKXgeDNA54dq6ZO_jVXIxUrPJbJnuDZXE8mtKjhRPaiyRxL1eG9phYCM4C3JrjDNRuBP1ov_16x1MXzql6-d_L4wU6RMKkt6WcTJNBkYDQ' },
+  { name: 'Consultório Médico Clean', url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCbK8t2MXcuciTeSFdpZrvoudmGLI2aWWKTHsUBGmLIisjwi8bZmKUb4GMCgLy58EDLq-Ic1Xtd457pWxBK-N6dP55R5bb9r2ehTy2t1kX6pEViqQ3Cl0HrAgBRla5fgbbjJ5D-YBfwaYoqJJ950dGz3j_sPgVqq3Lkxnh1GdZoffRJD5wXX9krvDqNQfrEKkFEj3-cVL0WesZKYsNqQGFLClaC2zW6Zvzv3DLN-lJEn3gnN23bJjDO8pwQuFZ20zsAxAIa_CdKqwY' },
+  { name: 'Recepção e Detalhes', url: 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&q=80&w=1200' }
+];
+
+export const parseFormattedPrice = (val: string | number): number => {
+  if (typeof val === 'number') return val;
+  if (!val) return 0;
+  const cleaned = val.replace(',', '.');
+  const parsed = parseFloat(cleaned);
+  return isNaN(parsed) ? 0 : parsed;
+};
 
 interface AdminDashboardProps {
   adminSettings: AdminSettings;
@@ -92,6 +111,10 @@ export default function AdminDashboardView({
   const [editRoomImage2, setEditRoomImage2] = useState('');
   
   const [editRoomFeatures, setEditRoomFeatures] = useState<string[]>([]);
+  const [editRoomSize, setEditRoomSize] = useState('');
+  const [editRoomCapacity, setEditRoomCapacity] = useState('');
+  const [editRoomPrice, setEditRoomPrice] = useState<string | number>('0');
+  const [isImageEditorExpanded, setIsImageEditorExpanded] = useState(false);
 
   // Room creation states
   const [isAddingRoom, setIsAddingRoom] = useState(false);
@@ -100,14 +123,72 @@ export default function AdminDashboardView({
   const [newRoomNumber, setNewRoomNumber] = useState('');
   const [newRoomLocation, setNewRoomLocation] = useState('Av. Barão do Rio Branco, 150 - Centro, Palhoça - SC');
   const [newRoomDescription, setNewRoomDescription] = useState('');
-  // Default image preset is the first one
-  const [newRoomImage, setNewRoomImage] = useState('https://lh3.googleusercontent.com/aida-public/AB6AXuAoW3_3-lK3ixFkeSUuv13KklvQeADvFsiWG-M2JXqkPo3zc351XK-v-QY5B6WZhMFYcdux00x9OQx8JQ3t81CRSw19hEzWMubmMom5eMM-9Jwz14jeGfJBQe8fV4f5h3ioRQdGt2JHH92cElgmq9VuAOcTw7-9w7x1_cltDMQPUqRRNV5kEMi9GPzjkXYtGddkTSaSfaEtayWZ4p31vYarH7bg2go2QjYVqVzV4JvlyzqGLQH-dZynak73vV5-YBhcm0oWpMxUf0w');
+  
+  const [newRoomSize, setNewRoomSize] = useState('15m²');
+  const [newRoomCapacity, setNewRoomCapacity] = useState('Até 3 pessoas');
+  const [newRoomPrice, setNewRoomPrice] = useState<string | number>('30');
+
+  // Default exactly 3 image presets in state
+  const [newRoomImage0, setNewRoomImage0] = useState('https://lh3.googleusercontent.com/aida-public/AB6AXuAoW3_3-lK3ixFkeSUuv13KklvQeADvFsiWG-M2JXqkPo3zc351XK-v-QY5B6WZhMFYcdux00x9OQx8JQ3t81CRSw19hEzWMubmMom5eMM-9Jwz14jeGfJBQe8fV4f5h3ioRQdGt2JHH92cElgmq9VuAOcTw7-9w7x1_cltDMQPUqRRNV5kEMi9GPzjkXYtGddkTSaSfaEtayWZ4p31vYarH7bg2go2QjYVqVzV4JvlyzqGLQH-dZynak73vV5-YBhcm0oWpMxUf0w');
+  const [newRoomImage1, setNewRoomImage1] = useState('https://lh3.googleusercontent.com/aida-public/AB6AXuBEA5kcWz6rbF7fVL_dVyf4kNliZh8hHnoTBjUNP-IqEaUPjRkWwbmMiVLt0-qmPlAPb3WEBZnuKKxtPPdeGGyuE_itqi6_ADsV6lfhB-fI-90aTCt_Kyju8NQXl4klyixYzoi2wZ9JjTPioHfHvMoc5a5FtygotQs05VASNttBMqHVm6ehI5O4Z4R2xHI1I4FcB8tiWzzVTW8agz70qJ57GdPnq75ElzCPEckGi-yYNWCFvqxTKKYq9S-f0Srazuq69vYW1Xa02jA');
+  const [newRoomImage2, setNewRoomImage2] = useState('https://lh3.googleusercontent.com/aida-public/AB6AXuBq8jn8GNPvhb_gIC4xr06rraY39VlEUEH-0vSJU6AYujIG9DPkiUF1zqgzTX4ed3d_R2wOdBXRkiOMI1Y9BO9LzgJkVhgoETydsTV8dowqy_Z9JNSoh_SiVLn0ilBjJowhkrFI_0mgfjbkVy-Qq32p4dqZVc0fNwPvvGoy_Z8ShEwGo0oyYQgb5AdRSb09mKV_O1pwN0N-wglRmLTKXEAy6PFRZCkL8A7B8oN3s_OrsOv7CY8nPWXlcPeRWSvDO5P2k_UvMbJ51tU');
+
+  // Interactive focus variables for real-time panning/zoom of pictures ("mexer e ajustar a foto")
+  const [activeNewImageIdx, setActiveNewImageIdx] = useState<number>(0);
+  const [activeEditImageIdx, setActiveEditImageIdx] = useState<number>(0);
+
+  const [newImgZooms, setNewImgZooms] = useState<number[]>([100, 100, 100]);
+  const [newImgPosXs, setNewImgPosXs] = useState<number[]>([50, 50, 50]);
+  const [newImgPosYs, setNewImgPosYs] = useState<number[]>([50, 50, 50]);
+  const [newImgRotate, setNewImgRotate] = useState<number>(0);
+  const [newImgBrightness, setNewImgBrightness] = useState<number>(100);
+  const [newImgContrast, setNewImgContrast] = useState<number>(100);
+
+  const [editImgZooms, setEditImgZooms] = useState<number[]>([100, 100, 100]);
+  const [editImgPosXs, setEditImgPosXs] = useState<number[]>([50, 50, 50]);
+  const [editImgPosYs, setEditImgPosYs] = useState<number[]>([50, 50, 50]);
+  const [editImgRotate, setEditImgRotate] = useState<number>(0);
+  const [editImgBrightness, setEditImgBrightness] = useState<number>(100);
+  const [editImgContrast, setEditImgContrast] = useState<number>(100);
+  
+  // Safe state confirmation states (prevents iframe alert/confirm sandbox restrictions)
+  const [deletingUserEmail, setDeletingUserEmail] = useState<string | null>(null);
+  const [deletingRoomId, setDeletingRoomId] = useState<string | null>(null);
+  const [cancellingBookingId, setCancellingBookingId] = useState<string | null>(null);
   
   // Amenities selection list state (newRoom)
-  const [newRoomFeatures, setNewRoomFeatures] = useState<string[]>(['📶 Wi-Fi', '☕ Café', '❄️ Climatizado']);
+  const [newRoomFeatures, setNewRoomFeatures] = useState<string[]>(['📶 Wi-Fi', '☕ Copa', '❄️ Climatizado']);
+
+  useEffect(() => {
+    if (adminSettings && adminSettings.tableOfPrices) {
+      setNewRoomPrice(adminSettings.tableOfPrices[newRoomType] || 30);
+    }
+  }, [newRoomType, adminSettings.tableOfPrices]);
 
   // File upload simulated trigger
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>, isEdit: boolean) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 2.5 * 1024 * 1024) {
+        alert("Para melhor desempenho no armazenamento local, escolha imagens com menos de 2.5MB.");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target?.result && typeof event.target.result === 'string') {
+          if (isEdit) {
+            setEditRoomImage0(event.target.result);
+          } else {
+            setNewRoomImage0(event.target.result);
+          }
+          triggerToast("Foto anexada e carregada no editor de imagens com sucesso! 📸");
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const triggerToast = (msg: string) => {
     setToastMessage(msg);
@@ -134,38 +215,51 @@ export default function AdminDashboardView({
       return;
     }
 
-    const price = adminSettings.tableOfPrices[newRoomType];
+    const price = parseFormattedPrice(newRoomPrice) || 30;
     const features = newRoomFeatures;
-
+ 
     const newId = `room-${Date.now()}`;
     const formattedName = `${newRoomName} - ${newRoomNumber}`;
-
+ 
     const newRoom: Room = {
       id: newId,
       name: formattedName,
       type: newRoomType,
       pricePerHour: price,
       rating: 5.0,
-      size: 'Arredores de Palhoça',
-      capacity: 'Recomendado para clínica',
+      size: "",
+      capacity: "",
       location: newRoomLocation,
       description: newRoomDescription,
-      images: [
-        newRoomImage,
-        'https://lh3.googleusercontent.com/aida-public/AB6AXuAoW3_3-lK3ixFkeSUuv13KklvQeADvFsiWG-M2JXqkPo3zc351XK-v-QY5B6WZhMFYcdux00x9OQx8JQ3t81CRSw19hEzWMubmMom5eMM-9Jwz14jeGfJBQe8fV4f5h3ioRQdGt2JHH92cElgmq9VuAOcTw7-9w7x1_cltDMQPUqRRNV5kEMi9GPzjkXYtGddkTSaSfaEtayWZ4p31vYarH7bg2go2QjYVqVzV4JvlyzqGLQH-dZynak73vV5-YBhcm0oWpMxUf0w',
-        'https://lh3.googleusercontent.com/aida-public/AB6AXuBEA5kcWz6rbF7fVL_dVyf4kNliZh8hHnoTBjUNP-IqEaUPjRkWwbmMiVLt0-qmPlAPb3WEBZnuKKxtPPdeGGyuE_itqi6_ADsV6lfhB-fI-90aTCt_Kyju8NQXl4klyixYzoi2wZ9JjTPioHfHvMoc5a5FtygotQs05VASNttBMqHVm6ehI5O4Z4R2xHI1I4FcB8tiWzzVTW8agz70qJ57GdPnq75ElzCPEckGi-yYNWCFvqxTKKYq9S-f0Srazuq69vYW1Xa02jA'
-      ],
-      features
+      images: [newRoomImage0].filter(Boolean),
+      features,
+      imageSettings: {
+        zoom: newImgZooms[0] || 100,
+        posX: newImgPosXs[0] || 50,
+        posY: newImgPosYs[0] || 50,
+        rotate: newImgRotate || 0,
+        brightness: newImgBrightness || 100,
+        contrast: newImgContrast || 100
+      }
     };
-
+ 
     onUpdateRooms([...rooms, newRoom]);
     triggerToast('Sala cadastrada com sucesso! Disponível para locação agora.');
-
+ 
     // Reset fields
     setNewRoomName('');
     setNewRoomNumber('');
     setNewRoomDescription('');
-    setNewRoomFeatures(['📶 Wi-Fi', '☕ Café', '❄️ Climatizado']);
+    setNewRoomFeatures(['📶 Wi-Fi', '☕ Copa', '❄️ Climatizado']);
+    setNewRoomSize('15m²');
+    setNewRoomCapacity('Até 3 pessoas');
+    setNewRoomPrice(30);
+    setNewImgZooms([100, 100, 100]);
+    setNewImgPosXs([50, 50, 50]);
+    setNewImgPosYs([50, 50, 50]);
+    setNewImgRotate(0);
+    setNewImgBrightness(100);
+    setNewImgContrast(100);
     setIsAddingRoom(false);
   };
 
@@ -174,6 +268,14 @@ export default function AdminDashboardView({
       const updatedRooms = rooms.filter(r => r.id !== roomId);
       onUpdateRooms(updatedRooms);
       triggerToast('Sala removida com sucesso de Palhoça.');
+    }
+  };
+
+  const handleDeleteUser = (email: string) => {
+    if (confirm('Deseja realmente excluir permanentemente este cadastro de profissional? Esta ação é irreversível.')) {
+      const updated = registeredUsers.filter(u => u.email !== email);
+      onUpdateUsers(updated);
+      triggerToast('Profissional excluído do sistema com sucesso! 🗑️');
     }
   };
 
@@ -242,8 +344,19 @@ export default function AdminDashboardView({
     setEditRoomDescription(room.description);
     setEditRoomType(room.type);
     setEditRoomImage0(room.images[0] || '');
-    setEditRoomImage1(room.images[1] || '');
-    setEditRoomImage2(room.images[2] || '');
+    setEditRoomImage1('');
+    setEditRoomImage2('');
+    setEditRoomSize(room.size || '');
+    setEditRoomCapacity('');
+    setEditRoomPrice(String(room.pricePerHour || 30).replace('.', ','));
+    
+    // Load existing image crop/edit settings if present, or set to standard values
+    setEditImgZooms([room.imageSettings?.zoom || 100, 100, 100]);
+    setEditImgPosXs([room.imageSettings?.posX ?? 50, 50, 50]);
+    setEditImgPosYs([room.imageSettings?.posY ?? 50, 50, 50]);
+    setEditImgRotate(room.imageSettings?.rotate || 0);
+    setEditImgBrightness(room.imageSettings?.brightness ?? 100);
+    setEditImgContrast(room.imageSettings?.contrast ?? 100);
     
     // Set amenities
     setEditRoomFeatures(room.features || []);
@@ -265,10 +378,21 @@ export default function AdminDashboardView({
           ...r,
           name: editRoomNameOnly,
           type: editRoomType,
+          size: editRoomSize,
+          capacity: "",
+          pricePerHour: parseFormattedPrice(editRoomPrice) || r.pricePerHour,
           location: editRoomLocation,
           description: editRoomDescription,
-          images: [editRoomImage0, editRoomImage1, editRoomImage2].filter(Boolean),
-          features
+          images: [editRoomImage0].filter(Boolean),
+          features,
+          imageSettings: {
+            zoom: editImgZooms[0] || 100,
+            posX: editImgPosXs[0] || 50,
+            posY: editImgPosYs[0] || 50,
+            rotate: editImgRotate || 0,
+            brightness: editImgBrightness || 100,
+            contrast: editImgContrast || 100
+          }
         };
       }
       return r;
@@ -935,170 +1059,344 @@ export default function AdminDashboardView({
 
           {/* Form Expansion Block */}
           {isAddingRoom && (
-            <form onSubmit={handleCreateRoom} className="space-y-6 p-6 bg-brand-bg rounded-2xl border border-outline-alt/20 animate-fade-in">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 font-sans text-xs">
+            <form onSubmit={handleCreateRoom} className="p-6 bg-[#ebf3fc]/40 rounded-3xl border-2 border-secondary/20 animate-fade-in mb-6 text-left">
+              <div className="flex justify-between items-center pb-2 border-b border-secondary/10 mb-5">
+                <span className="font-sans font-black text-secondary text-xs uppercase tracking-wider">
+                  Layout Simplificado · Novo Consultório ✨
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setIsAddingRoom(false)}
+                  className="text-brand-variant hover:text-primary text-xs font-bold cursor-pointer font-sans"
+                >
+                  Fechar [✕]
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 
-                {/* Name */}
-                <div className="space-y-1.5">
-                  <label className="text-[10px] uppercase font-bold tracking-wider text-brand-variant block">Nome da Sala / Consultório</label>
-                  <input
-                    type="text"
-                    required
-                    value={newRoomName}
-                    onChange={(e) => setNewRoomName(e.target.value)}
-                    placeholder="Ex: Sala das Palmeiras, Sala Multidisciplinar, Consultório de Pediatria"
-                    className="w-full px-4 py-2.5 rounded-xl border border-outline-alt/60 bg-white text-primary focus:ring-2 focus:ring-primary outline-none"
-                  />
-                </div>
-
-                {/* Sub-number of office */}
-                <div className="space-y-1.5">
-                  <label className="text-[10px] uppercase font-bold tracking-wider text-brand-variant block">Número do Consultório</label>
-                  <input
-                    type="text"
-                    required
-                    value={newRoomNumber}
-                    onChange={(e) => setNewRoomNumber(e.target.value)}
-                    placeholder="Ex: Consultório 102, Sala B, Bloco C"
-                    className="w-full px-4 py-2.5 rounded-xl border border-outline-alt/60 bg-white text-primary focus:ring-2 focus:ring-primary outline-none"
-                  />
-                </div>
-
-                {/* Location Address */}
-                <div className="space-y-1.5 md:col-span-2">
-                  <label className="text-[10px] uppercase font-bold tracking-wider text-brand-variant block">Endereço Completo</label>
-                  <input
-                    type="text"
-                    required
-                    value={newRoomLocation}
-                    onChange={(e) => setNewRoomLocation(e.target.value)}
-                    placeholder="Ex: Av. Barão do Rio Branco, 150 - Centro, Palhoça - SC"
-                    className="w-full px-4 py-2.5 rounded-xl border border-outline-alt/60 bg-white text-primary focus:ring-2 focus:ring-primary outline-none"
-                  />
-                </div>
-
-                {/* Category Selection */}
-                <div className="space-y-1.5">
-                  <label className="text-[10px] uppercase font-bold tracking-wider text-brand-variant block">Categoria da Sala (Tabela de Preços)</label>
-                  <select
-                    value={newRoomType}
-                    onChange={(e) => setNewRoomType(e.target.value as any)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-outline-alt/60 bg-white text-primary focus:ring-2 focus:ring-primary outline-none font-bold text-secondary"
-                  >
-                    <option value="standard">Padrão / Standard (R$ {adminSettings.tableOfPrices.standard}/h)</option>
-                    <option value="premium">Premium (R$ {adminSettings.tableOfPrices.premium}/h)</option>
-                    <option value="executivo_luxo">Consultório Executivo Luxo (R$ {adminSettings.tableOfPrices.executivo_luxo}/h)</option>
-                    <option value="auditorium">Auditório (R$ {adminSettings.tableOfPrices.auditorium}/turno)</option>
-                  </select>
-                </div>
-
-                {/* Photo URL Selection */}
-                <div className="space-y-1.5">
-                  <label className="text-[10px] uppercase font-bold tracking-wider text-brand-variant block font-bold text-secondary">Foto de Capa do Consultório</label>
-                  <input
-                    type="text"
-                    required
-                    value={newRoomImage}
-                    onChange={(e) => setNewRoomImage(e.target.value)}
-                    placeholder="Cole a URL ou selecione um preset abaixo"
-                    className="w-full px-4 py-2.5 rounded-xl border border-outline-alt/60 bg-white text-primary focus:ring-2 focus:ring-primary outline-none text-xs font-mono"
-                  />
-                </div>
-
-                {/* Presets Grid */}
-                <div className="md:col-span-2 space-y-2">
-                  <label className="text-[10px] uppercase font-bold tracking-wider text-brand-variant block">Presets de Imagem Clínica (Clique p/ selecionar)</label>
-                  <div className="grid grid-cols-3 gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setNewRoomImage('https://lh3.googleusercontent.com/aida-public/AB6AXuAoW3_3-lK3ixFkeSUuv13KklvQeADvFsiWG-M2JXqkPo3zc351XK-v-QY5B6WZhMFYcdux00x9OQx8JQ3t81CRSw19hEzWMubmMom5eMM-9Jwz14jeGfJBQe8fV4f5h3ioRQdGt2JHH92cElgmq9VuAOcTw7-9w7x1_cltDMQPUqRRNV5kEMi9GPzjkXYtGddkTSaSfaEtayWZ4p31vYarH7bg2go2QjYVqVzV4JvlyzqGLQH-dZynak73vV5-YBhcm0oWpMxUf0w')}
-                      className={`relative aspect-video rounded-xl overflow-hidden border-2 transition-all ${newRoomImage.includes('AB6AXuAoW3') ? 'border-secondary scale-102 ring-4 ring-secondary/15' : 'border-transparent opacity-80 hover:opacity-100'}`}
-                    >
-                      <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAoW3_3-lK3ixFkeSUuv13KklvQeADvFsiWG-M2JXqkPo3zc351XK-v-QY5B6WZhMFYcdux00x9OQx8JQ3t81CRSw19hEzWMubmMom5eMM-9Jwz14jeGfJBQe8fV4f5h3ioRQdGt2JHH92cElgmq9VuAOcTw7-9w7x1_cltDMQPUqRRNV5kEMi9GPzjkXYtGddkTSaSfaEtayWZ4p31vYarH7bg2go2QjYVqVzV4JvlyzqGLQH-dZynak73vV5-YBhcm0oWpMxUf0w" className="w-full h-full object-cover" />
-                      <div className="absolute inset-x-0 bottom-0 bg-black/60 py-1 text-center text-[9px] text-white font-bold">Lúdica / Infantil</div>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setNewRoomImage('https://lh3.googleusercontent.com/aida-public/AB6AXuBEA5kcWz6rbF7fVL_dVyf4kNliZh8hHnoTBjUNP-IqEaUPjRkWwbmMiVLt0-qmPlAPb3WEBZnuKKxtPPdeGGyuE_itqi6_ADsV6lfhB-fI-90aTCt_Kyju8NQXl4klyixYzoi2wZ9JjTPioHfHvMoc5a5FtygotQs05VASNttBMqHVm6ehI5O4Z4R2xHI1I4FcB8tiWzzVTW8agz70qJ57GdPnq75ElzCPEckGi-yYNWCFvqxTKKYq9S-f0Srazuq69vYW1Xa02jA')}
-                      className={`relative aspect-video rounded-xl overflow-hidden border-2 transition-all ${newRoomImage.includes('AB6AXuBEA5k') ? 'border-secondary scale-102 ring-4 ring-secondary/15' : 'border-transparent opacity-80 hover:opacity-100'}`}
-                    >
-                      <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuBEA5kcWz6rbF7fVL_dVyf4kNliZh8hHnoTBjUNP-IqEaUPjRkWwbmMiVLt0-qmPlAPb3WEBZnuKKxtPPdeGGyuE_itqi6_ADsV6lfhB-fI-90aTCt_Kyju8NQXl4klyixYzoi2wZ9JjTPioHfHvMoc5a5FtygotQs05VASNttBMqHVm6ehI5O4Z4R2xHI1I4FcB8tiWzzVTW8agz70qJ57GdPnq75ElzCPEckGi-yYNWCFvqxTKKYq9S-f0Srazuq69vYW1Xa02jA" className="w-full h-full object-cover" />
-                      <div className="absolute inset-x-0 bottom-0 bg-black/60 py-1 text-center text-[9px] text-white font-bold">Psicologia Clássica</div>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setNewRoomImage('https://lh3.googleusercontent.com/aida-public/AB6AXuBq8jn8GNPvhb_gIC4xr06rraY39VlEUEH-0vSJU6AYujIG9DPkiUF1zqgzTX4ed3d_R2wOdBXRkiOMI1Y9BO9LzgJkVhgoETydsTV8dowqy_Z9JNSoh_SiVLn0ilBjJowhkrFI_0mgfjbkVy-Qq32p4dqZVc0fNwPvvGoy_Z8ShEwGo0oyYQgb5AdRSb09mKV_O1pwN0N-wglRmLTKXEAy6PFRZCkL8A7B8oN3s_OrsOv7CY8nPWXlcPeRWSvDO5P2k_UvMbJ51tU')}
-                      className={`relative aspect-video rounded-xl overflow-hidden border-2 transition-all ${newRoomImage.includes('AB6AXuBq8') ? 'border-secondary scale-102 ring-4 ring-secondary/15' : 'border-transparent opacity-80 hover:opacity-100'}`}
-                    >
-                      <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuBq8jn8GNPvhb_gIC4xr06rraY39VlEUEH-0vSJU6AYujIG9DPkiUF1zqgzTX4ed3d_R2wOdBXRkiOMI1Y9BO9LzgJkVhgoETydsTV8dowqy_Z9JNSoh_SiVLn0ilBjJowhkrFI_0mgfjbkVy-Qq32p4dqZVc0fNwPvvGoy_Z8ShEwGo0oyYQgb5AdRSb09mKV_O1pwN0N-wglRmLTKXEAy6PFRZCkL8A7B8oN3s_OrsOv7CY8nPWXlcPeRWSvDO5P2k_UvMbJ51tU" className="w-full h-full object-cover" />
-                      <div className="absolute inset-x-0 bottom-0 bg-black/60 py-1 text-center text-[9px] text-white font-bold">Multidisciplinar / Geral</div>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Description */}
-                <div className="space-y-1.5 md:col-span-2">
-                  <label className="text-[10px] uppercase font-bold tracking-wider text-brand-variant block">Descrição do Consultório / Sala</label>
-                  <textarea
-                    rows={3}
-                    required
-                    value={newRoomDescription}
-                    onChange={(e) => setNewRoomDescription(e.target.value)}
-                    placeholder="Insira detalhes sobre móveis, sonorização, conforto e finalidade..."
-                    className="w-full px-4 py-2.5 rounded-xl border border-outline-alt/60 bg-white text-[#42474e] focus:ring-2 focus:ring-primary outline-none"
-                  />
-                </div>
-
-                {/* CHOSEN AMENITIES/FEATURES CHECKS */}
-                <div className="md:col-span-2 space-y-3 pt-2 border-t border-outline-alt/20">
-                  <h5 className="text-[10px] uppercase font-black tracking-wider text-primary">Comodidades & Diferenciais do Consultório</h5>
+                {/* Inputs Columns */}
+                <div className="lg:col-span-7 space-y-6">
                   
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-                    {AMENITIES_LIST.map((amenity) => {
-                      const valueString = `${amenity.emoji} ${amenity.label}`;
-                      const isSelected = newRoomFeatures.includes(valueString);
-                      return (
+                  {/* SEÇÃO 1: Informações Básicas */}
+                  <div className="space-y-4">
+                    <h5 className="text-[10px] uppercase font-black tracking-wider text-secondary flex items-center gap-1.5 font-sans font-extrabold select-none">
+                      <LayoutDashboard className="w-3.5 h-3.5" /> SEÇÃO 1: Informações Básicas
+                    </h5>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {/* Nome da Sala */}
+                      <div className="space-y-1.5 font-sans text-xs">
+                        <label className="text-[10px] uppercase font-extrabold tracking-wider text-brand-variant block">Nome da Sala</label>
+                        <input
+                          type="text"
+                          required
+                          value={newRoomName}
+                          onChange={(e) => setNewRoomName(e.target.value)}
+                          placeholder="Ex: Sala das Palmeiras"
+                          className="w-full px-4 py-2.5 rounded-xl border border-outline-alt/60 bg-white text-primary focus:ring-2 focus:ring-primary outline-none font-sans font-bold"
+                        />
+                      </div>
+
+                      {/* Número da Sala */}
+                      <div className="space-y-1.5 font-sans text-xs">
+                        <label className="text-[10px] uppercase font-extrabold tracking-wider text-brand-variant block">Número da Sala</label>
+                        <input
+                          type="text"
+                          required
+                          value={newRoomNumber}
+                          onChange={(e) => setNewRoomNumber(e.target.value)}
+                          placeholder="Ex: Consultório 102"
+                          className="w-full px-4 py-2.5 rounded-xl border border-outline-alt/60 bg-white text-primary focus:ring-2 focus:ring-primary outline-none font-sans font-bold"
+                        />
+                      </div>
+
+                      {/* Valor por Hora */}
+                      <div className="space-y-1.5 font-sans text-xs">
+                        <label id="lbl-create-valor" className="text-[10px] uppercase font-extrabold tracking-wider text-secondary block font-bold">Valor por Hora</label>
+                        <div className="relative rounded-xl border border-secondary/40 bg-white focus-within:ring-2 focus-within:ring-secondary flex items-center overflow-hidden">
+                          <span className="pl-4 pr-1.5 text-xs font-black text-secondary select-none">R$</span>
+                          <input
+                            type="text"
+                            required
+                            value={newRoomPrice}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (/^[0-9.,]*$/.test(val) || val === '') {
+                                setNewRoomPrice(val);
+                              }
+                            }}
+                            className="w-full py-2.5 bg-transparent text-primary focus:outline-none font-sans font-black text-xs"
+                            placeholder="30,00"
+                          />
+                          <span className="pr-3 text-[9px] text-brand-variant font-black select-none whitespace-nowrap">/ h</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* SEÇÃO 2: Foto Principal */}
+                  <div className="space-y-4 pt-4 border-t border-secondary/10">
+                    <h5 className="text-[10px] uppercase font-black tracking-wider text-secondary flex items-center gap-1.5 font-sans font-extrabold select-none">
+                      <Camera className="w-3.5 h-3.5" /> SEÇÃO 2: Foto Principal
+                    </h5>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      {/* Upload box */}
+                      <div className="sm:col-span-1 flex flex-col gap-2">
+                        <span className="text-[10px] font-bold text-slate-700 uppercase">Input local:</span>
+                        <div className="relative aspect-video rounded-xl overflow-hidden border border-secondary/30 bg-slate-100 flex items-center justify-center group shadow-xs">
+                          {newRoomImage0 ? (
+                            <img
+                              src={newRoomImage0}
+                              alt="Visualização no Editor"
+                              className="w-full h-full object-cover transition-all"
+                              style={{
+                                transform: `scale(${(newImgZooms[0] || 100) / 100}) rotate(${newImgRotate || 0}deg)`,
+                                objectPosition: `${newImgPosXs[0] || 50}% ${newImgPosYs[0] || 50}%`,
+                                filter: `brightness(${newImgBrightness || 100}%) contrast(${newImgContrast || 100}%)`
+                              }}
+                              referrerPolicy="no-referrer"
+                            />
+                          ) : (
+                            <span className="text-xs text-slate-400 font-bold">Sem Foto</span>
+                          )}
+                          <div className="absolute inset-0 border-2 border-dashed border-white/40 pointer-events-none rounded-lg m-1" />
+                        </div>
+
+                        <div className="mt-1">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handlePhotoUpload(e, false)}
+                            className="hidden"
+                            id="new-room-photo-file-picker"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => document.getElementById('new-room-photo-file-picker')?.click()}
+                            className="w-full py-2 bg-secondary text-white font-sans font-black text-xs rounded-xl hover:bg-secondary-dark transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer font-sans"
+                          >
+                            Anexar Foto 📁
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Presets */}
+                      <div className="sm:col-span-2 bg-white/50 p-4 border border-[#c2c7cf]/45 rounded-xl space-y-2 font-sans">
+                        <span className="text-[10px] font-black uppercase tracking-wider text-secondary block">
+                          Ou selecione um preset clínico:
+                        </span>
+                        <div className="grid grid-cols-3 gap-1.5 font-sans">
+                          {CLINIC_PRESETS.slice(0, 6).map((preset) => (
+                            <button
+                              key={preset.name}
+                              type="button"
+                              onClick={() => {
+                                setNewRoomImage0(preset.url);
+                                triggerToast(`Preset carregado: ${preset.name}!`);
+                              }}
+                              className="px-1 py-1 bg-white border border-[#9b9fa6]/35 text-[9px] font-bold text-primary rounded-lg text-center hover:bg-slate-50 cursor-pointer truncate font-sans"
+                              title={preset.name}
+                            >
+                              🏢 {preset.name.split(' ')[0]}
+                            </button>
+                          ))}
+                        </div>
+                        <input
+                          type="text"
+                          value={newRoomImage0}
+                          onChange={(e) => setNewRoomImage0(e.target.value)}
+                          placeholder="Cole o endereço/link web de outra foto"
+                          className="w-full px-3 py-2 text-xs rounded-lg border border-outline-alt/50 bg-white text-primary outline-none focus:ring-1 focus:ring-secondary font-mono mt-1"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* SEÇÃO 4: Editar Imagem */}
+                  <div className="space-y-4 pt-4 border-t border-secondary/10">
+                    <h5 className="text-[10px] uppercase font-black tracking-wider text-secondary flex items-center gap-1.5 font-sans font-extrabold select-none">
+                      <SlidersHorizontal className="w-3.5 h-3.5" /> SEÇÃO 4: Editar Imagem
+                    </h5>
+
+                    <div className="bg-white/50 p-4 border border-[#c2c7cf]/40 rounded-xl space-y-3 font-sans">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {/* Zoom */}
+                        <div className="space-y-1">
+                          <div className="flex justify-between text-[10px] font-bold text-slate-700">
+                            <span>Zoom</span>
+                            <span className="text-secondary">{newImgZooms[0] || 100}%</span>
+                          </div>
+                          <input
+                            type="range"
+                            min="100"
+                            max="300"
+                            step="2"
+                            value={newImgZooms[0] || 100}
+                            onChange={(e) => {
+                              const val = Number(e.target.value);
+                              setNewImgZooms(prev => [val, prev[1], prev[2]]);
+                            }}
+                            className="w-full h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-secondary"
+                          />
+                        </div>
+
+                        {/* Rotate */}
+                        <div className="space-y-1">
+                          <span className="text-[10px] font-bold text-slate-700 block text-left">Rotacionar</span>
+                          <div className="flex gap-1.5">
+                            {[0, 90, 180, 270].map((deg) => (
+                              <button
+                                key={deg}
+                                type="button"
+                                onClick={() => setNewImgRotate(deg)}
+                                className={`flex-1 py-0.5 text-[9px] font-bold rounded border cursor-pointer transition-all ${
+                                  newImgRotate === deg 
+                                    ? 'bg-slate-900 border-black text-white' 
+                                    : 'bg-white hover:bg-slate-100 text-slate-700 border-outline-alt/40'
+                                }`}
+                              >
+                                {deg}°
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Brightness */}
+                        <div className="space-y-1">
+                          <div className="flex justify-between text-[10px] font-bold text-slate-700">
+                            <span>Brilho</span>
+                            <span className="text-secondary">{newImgBrightness}%</span>
+                          </div>
+                          <input
+                            type="range"
+                            min="50"
+                            max="150"
+                            step="2"
+                            value={newImgBrightness}
+                            onChange={(e) => setNewImgBrightness(Number(e.target.value))}
+                            className="w-full h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-secondary"
+                          />
+                        </div>
+
+                        {/* Contrast */}
+                        <div className="space-y-1">
+                          <div className="flex justify-between text-[10px] font-bold text-slate-700">
+                            <span>Contraste</span>
+                            <span className="text-secondary">{newImgContrast}%</span>
+                          </div>
+                          <input
+                            type="range"
+                            min="50"
+                            max="150"
+                            step="2"
+                            value={newImgContrast}
+                            onChange={(e) => setNewImgContrast(Number(e.target.value))}
+                            className="w-full h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-secondary"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex justify-end pt-2 border-t border-outline-alt/10">
                         <button
-                          key={amenity.label}
                           type="button"
                           onClick={() => {
-                            setNewRoomFeatures(prev => 
-                              prev.includes(valueString)
-                                ? prev.filter(f => f !== valueString)
-                                : [...prev, valueString]
-                            );
+                            setNewImgZooms([100, 100, 100]);
+                            setNewImgPosXs([50, 50, 50]);
+                            setNewImgPosYs([50, 50, 50]);
+                            setNewImgRotate(0);
+                            setNewImgBrightness(100);
+                            setNewImgContrast(100);
                           }}
-                          className={`flex items-center gap-2.5 p-2 px-3 border rounded-xl cursor-pointer select-none transition-all text-left ${
-                            isSelected
-                              ? 'bg-slate-900 border-slate-950 text-white shadow-xs'
-                              : 'bg-white hover:bg-slate-50 border-outline-alt/45 text-slate-700'
-                          }`}
+                          className="px-2.5 py-0.5 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 font-bold rounded cursor-pointer text-[9px] font-sans"
                         >
-                          <span className="text-base">{amenity.emoji}</span>
-                          <span className="font-semibold text-[11px] leading-tight">{amenity.label}</span>
+                          Redefinir
                         </button>
-                      );
-                    })}
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+
+                {/* Right Column: SEÇÃO 3: Prévia do Consultório (Live Preview) (occupies lg:col-span-5) */}
+                <div className="lg:col-span-5 text-left lg:sticky lg:top-6 space-y-3 font-sans">
+                  <h5 className="text-[10px] uppercase font-black tracking-wider text-[#38761d] bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-full inline-block select-none">
+                    👁️ SEÇÃO 3: Prévia do Consultório
+                  </h5>
+
+                  <div className="flex flex-col bg-white border border-outline-alt/25 rounded-3xl overflow-hidden shadow-lg border-secondary ring-2 ring-secondary/20 min-w-[280px] font-sans">
+                    <div className="h-60 w-full overflow-hidden relative bg-slate-100">
+                      {newRoomImage0 ? (
+                        <img
+                          src={newRoomImage0}
+                          alt={newRoomName || 'Visualização do Consultório'}
+                          className="w-full h-full object-cover transition-all"
+                          style={{
+                            transform: `scale(${(newImgZooms[0] || 100) / 100}) rotate(${newImgRotate || 0}deg)`,
+                            objectPosition: `${(newImgPosXs[0] || 50)}% ${(newImgPosYs[0] || 50)}%`,
+                            filter: `brightness(${newImgBrightness || 100}%) contrast(${newImgContrast || 100}%)`
+                          }}
+                          referrerPolicy="no-referrer"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-slate-400 text-xs font-sans">Sem Foto</div>
+                      )}
+                      
+                      <div className="absolute top-3 left-3 bg-secondary/90 backdrop-blur-xs text-white text-[9px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-xl">
+                        {newRoomNumber ? `Sala ${newRoomNumber}` : 'Nova Sala'}
+                      </div>
+                      
+                      <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-xs text-primary text-xs font-bold px-2 py-1 rounded-xl flex items-center gap-1 shadow select-none flex-nowrap">
+                        <Star className="w-3 h-3 fill-secondary text-secondary" />
+                        <span>5.0</span>
+                      </div>
+
+                      <div className="absolute bottom-3 left-3 bg-black/70 backdrop-blur-xs text-white text-xs font-bold px-3 py-1 rounded-lg">
+                        R$ {parseFormattedPrice(newRoomPrice).toFixed(2).replace('.', ',')} / hora
+                      </div>
+                    </div>
+
+                    <div className="p-5 flex-grow space-y-3 bg-slate-50/35 border-t border-outline-alt/10">
+                      <div className="space-y-1.5 text-left font-sans">
+                        <h3 className="font-sans font-extrabold text-sm text-primary leading-snug">
+                          {newRoomName || 'Nome do Consultório'}
+                        </h3>
+                        <div className="flex flex-wrap items-center gap-1 text-[10px] text-slate-500 font-medium">
+                          <span className="flex items-center gap-1 bg-slate-100 text-slate-700 rounded px-2 py-0.5">
+                            📶 Wi-Fi
+                          </span>
+                          <span className="flex items-center gap-1 bg-slate-100 text-slate-700 rounded px-2 py-0.5">
+                            ☕ Copa
+                          </span>
+                          <span className="flex items-center gap-1 bg-slate-100 text-slate-700 rounded px-2 py-0.5">
+                            ❄️ Climatizado
+                          </span>
+                        </div>
+                      </div>
+
+                      <p className="font-sans text-[10px] text-brand-variant line-clamp-3 leading-relaxed text-left">
+                        Consultório clínico equipado de alto padrão, pronto para atendimento com acústica de estúdio, ambiente climatizado e suporte da recepção.
+                      </p>
+                    </div>
                   </div>
                 </div>
 
               </div>
 
-              <div className="flex justify-end gap-3 pt-2">
+              <div className="flex justify-end gap-3 pt-4 border-t border-outline-alt/15 mt-5">
                 <button
                   type="button"
                   onClick={() => setIsAddingRoom(false)}
-                  className="px-5 py-2.5 text-xs text-brand-variant font-bold border border-[#c2c7cf] hover:bg-outline-alt/10 rounded-xl transition-all cursor-pointer"
+                  className="px-5 py-2.5 text-xs text-brand-variant font-bold border border-[#c2c7cf] hover:bg-outline-alt/10 rounded-xl transition-all cursor-pointer font-sans"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 text-xs text-white font-bold bg-primary hover:bg-primary/95 rounded-xl shadow-md cursor-pointer"
+                  className="px-5 py-2.5 text-xs text-white font-bold bg-secondary hover:bg-secondary/95 rounded-xl shadow-md cursor-pointer font-sans"
                 >
-                  Salvar Consultório
+                  Criar Consultório
                 </button>
               </div>
             </form>
@@ -1106,151 +1404,429 @@ export default function AdminDashboardView({
 
           {/* Edit Room Form Expansion Block */}
           {editingRoom && (
-            <form onSubmit={handleSaveEditedRoom} id="edit-room-form-anchor" className="space-y-6 p-6 bg-[#ebf3fc]/40 rounded-2xl border-2 border-secondary/20 animate-fade-in mb-6">
-              <div className="flex justify-between items-center pb-2 border-b border-secondary/10">
+            <form onSubmit={handleSaveEditedRoom} id="edit-room-form-anchor" className="p-6 bg-[#ebf3fc]/40 rounded-3xl border-2 border-secondary/20 animate-fade-in mb-6 text-left font-sans">
+              <div className="flex justify-between items-center pb-2 border-b border-secondary/10 mb-5 font-sans">
                 <span className="font-sans font-black text-secondary text-xs uppercase tracking-wider">
-                  ✏️ Editando Consultório: {editingRoom.name}
+                  Layout Simplificado · Editando Consultório: {editingRoom.name} ✏️
                 </span>
                 <button
                   type="button"
                   onClick={() => setEditingRoom(null)}
-                  className="text-brand-variant hover:text-primary text-xs font-bold cursor-pointer"
+                  className="text-brand-variant hover:text-primary text-xs font-bold cursor-pointer font-sans"
                 >
                   Fechar [✕]
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 font-sans text-xs">
-                {/* Room Custom Name */}
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-brand-variant">Identificação da Sala (Nome)</label>
-                  <input
-                    type="text"
-                    required
-                    value={editRoomNameOnly}
-                    onChange={(e) => setEditRoomNameOnly(e.target.value)}
-                    placeholder="Ex: Consultório A04 - Terapia"
-                    className="w-full px-4 py-2.5 rounded-xl border border-outline-alt/60 bg-white text-primary font-bold focus:ring-2 focus:ring-secondary outline-none"
-                  />
-                </div>
-
-                {/* Sublocation Type */}
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-brand-variant">Tipo de Categoria Técnica</label>
-                  <select
-                    value={editRoomType}
-                    onChange={(e) => setEditRoomType(e.target.value as any)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-outline-alt/60 bg-white focus:ring-2 focus:ring-secondary outline-none font-semibold text-primary"
-                  >
-                    <option value="standard">Standard (Básica Completa)</option>
-                    <option value="premium">Premium (Clínica Especializada)</option>
-                    <option value="executivo_luxo">Luxo Executivo (Mobiliada Alto Padrão)</option>
-                    <option value="auditorium">Auditório / Turno Especial</option>
-                  </select>
-                </div>
-
-                {/* Address Location */}
-                <div className="md:col-span-2 space-y-1.5">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-brand-variant">Endereço da Unidade Clínica</label>
-                  <input
-                    type="text"
-                    required
-                    value={editRoomLocation}
-                    onChange={(e) => setEditRoomLocation(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-outline-alt/60 bg-white text-brand-text focus:ring-2 focus:ring-secondary outline-none"
-                  />
-                </div>
-
-                {/* Picture Image URLs */}
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-brand-variant">Foto Principal (URL)</label>
-                  <input
-                    type="text"
-                    required
-                    value={editRoomImage0}
-                    onChange={(e) => setEditRoomImage0(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-outline-alt/60 bg-white text-[#42474e] focus:ring-2 focus:ring-secondary outline-none"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-brand-variant">Foto Opcional 2 (URL)</label>
-                  <input
-                    type="text"
-                    value={editRoomImage1}
-                    onChange={(e) => setEditRoomImage1(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-outline-alt/60 bg-white text-[#42474e] focus:ring-2 focus:ring-secondary outline-none"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-brand-variant">Foto Opcional 3 (URL)</label>
-                  <input
-                    type="text"
-                    value={editRoomImage2}
-                    onChange={(e) => setEditRoomImage2(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-outline-alt/60 bg-white text-[#42474e] focus:ring-2 focus:ring-secondary outline-none"
-                  />
-                </div>
-
-                {/* Description texts */}
-                <div className="md:col-span-2 space-y-1.5">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-brand-variant">Descrição de Recursos & Acolhimento</label>
-                  <textarea
-                    rows={2}
-                    required
-                    value={editRoomDescription}
-                    onChange={(e) => setEditRoomDescription(e.target.value)}
-                    placeholder="Recursos da sala..."
-                    className="w-full px-4 py-2.5 rounded-xl border border-outline-alt/60 bg-white text-[#42474e] focus:ring-2 focus:ring-secondary outline-none"
-                  />
-                </div>
-
-                {/* CHOSEN AMENITIES/FEATURES CHECKS */}
-                <div className="md:col-span-2 space-y-3 pt-2">
-                  <h5 className="text-[10px] uppercase font-black tracking-wider text-secondary font-sans font-extrabold pb-1">Ajustar Comodidades / Diagnósticos</h5>
+              {/* Grid Layout: Form fields (left) vs High Fidelity Live Preview (right) */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                
+                {/* Left Side: Dynamic Forms */}
+                <div className="lg:col-span-12 xl:col-span-7 space-y-6">
                   
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-                    {AMENITIES_LIST.map((amenity) => {
-                      const valueString = `${amenity.emoji} ${amenity.label}`;
-                      const isSelected = editRoomFeatures.includes(valueString);
-                      return (
+                  {/* SEÇÃO 1: Informações Básicas */}
+                  <div className="space-y-4">
+                    <h5 className="text-[10px] uppercase font-black tracking-wider text-secondary flex items-center gap-1.5 font-sans font-extrabold select-none">
+                      <LayoutDashboard className="w-3.5 h-3.5" /> SEÇÃO 1: Informações Básicas
+                    </h5>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {/* Nome da Sala */}
+                      <div className="space-y-1.5 font-sans text-xs font-sans">
+                        <label className="text-[10px] uppercase font-extrabold tracking-wider text-brand-variant block">Nome da Sala</label>
+                        <input
+                          type="text"
+                          required
+                          value={editRoomNameOnly}
+                          onChange={(e) => setEditRoomNameOnly(e.target.value)}
+                          placeholder="Ex: Consultório Master"
+                          className="w-full px-4 py-2.5 rounded-xl border border-outline-alt/60 bg-white text-primary focus:ring-2 focus:ring-primary outline-none font-sans font-bold"
+                        />
+                      </div>
+
+                      {/* Número da Sala */}
+                      <div className="space-y-1.5 font-sans text-xs">
+                        <label className="text-[10px] uppercase font-extrabold tracking-wider text-brand-variant block">Número da Sala</label>
+                        <input
+                          type="text"
+                          required
+                          value={editRoomSize}
+                          onChange={(e) => setEditRoomSize(e.target.value)}
+                          placeholder="Ex: Sala 301"
+                          className="w-full px-4 py-2.5 rounded-xl border border-outline-alt/60 bg-white text-primary focus:ring-2 focus:ring-primary outline-none font-sans font-bold"
+                        />
+                      </div>
+
+                      {/* Valor por Hora */}
+                      <div className="space-y-1.5 font-sans text-xs">
+                        <label id="lbl-edit-valor" className="text-[10px] uppercase font-extrabold tracking-wider text-secondary block font-bold">Valor por Hora</label>
+                        <div className="relative rounded-xl border border-secondary/40 bg-white focus-within:ring-2 focus-within:ring-secondary flex items-center overflow-hidden">
+                          <span className="pl-4 pr-1.5 text-xs font-black text-secondary select-none">R$</span>
+                          <input
+                            type="text"
+                            required
+                            value={editRoomPrice}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (/^[0-9.,]*$/.test(val) || val === '') {
+                                setEditRoomPrice(val);
+                              }
+                            }}
+                            className="w-full py-2.5 bg-transparent text-primary focus:outline-none font-sans font-black text-xs"
+                            placeholder="35,00"
+                          />
+                          <span className="pr-3 text-[9px] text-brand-variant font-black select-none whitespace-nowrap font-sans">/ h</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* SEÇÃO 2: Foto Principal */}
+                  <div className="space-y-4 pt-4 border-t border-secondary/10">
+                    <h5 className="text-[10px] uppercase font-black tracking-wider text-secondary flex items-center gap-1.5 font-sans font-extrabold select-none">
+                      <Camera className="w-3.5 h-3.5" /> SEÇÃO 2: Foto Principal
+                    </h5>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 font-sans">
+                      {/* Upload box */}
+                      <div className="sm:col-span-1 flex flex-col gap-2">
+                        <span className="text-[10px] font-bold text-slate-700 uppercase font-sans">Input local:</span>
+                        <div className="relative aspect-video rounded-xl overflow-hidden border border-secondary/30 bg-slate-100 flex items-center justify-center group shadow-xs">
+                          {editRoomImage0 ? (
+                            <img
+                              src={editRoomImage0}
+                              alt="Visualização no Editor"
+                              className="w-full h-full object-cover transition-all"
+                              style={{
+                                transform: `scale(${(editImgZooms[0] || 100) / 100}) rotate(${editImgRotate || 0}deg)`,
+                                objectPosition: `${editImgPosXs[0] || 50}% ${editImgPosYs[0] || 50}%`,
+                                filter: `brightness(${editImgBrightness || 100}%) contrast(${editImgContrast || 100}%)`
+                              }}
+                              referrerPolicy="no-referrer"
+                            />
+                          ) : (
+                            <span className="text-xs text-slate-400 font-bold font-sans">Sem Foto</span>
+                          )}
+                          <div className="absolute inset-0 border-2 border-dashed border-white/40 pointer-events-none rounded-lg m-1" />
+                        </div>
+
+                        <div className="mt-1 font-sans font-sans">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handlePhotoUpload(e, true)}
+                            className="hidden"
+                            id="edit-room-photo-file-picker"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => document.getElementById('edit-room-photo-file-picker')?.click()}
+                            className="w-full py-2 bg-secondary text-white font-sans font-black text-xs rounded-xl hover:bg-secondary-dark transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer font-sans"
+                          >
+                            Anexar Foto 📁
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Presets */}
+                      <div className="sm:col-span-2 bg-white/50 p-4 border border-[#c2c7cf]/45 rounded-xl space-y-2 font-sans">
+                        <span className="text-[10px] font-black uppercase tracking-wider text-secondary block">
+                          Ou selecione um preset clínico:
+                        </span>
+                        <div className="grid grid-cols-3 gap-1.5 font-sans font-sans">
+                          {CLINIC_PRESETS.slice(0, 6).map((preset) => (
+                            <button
+                              key={preset.name}
+                              type="button"
+                              onClick={() => {
+                                setEditRoomImage0(preset.url);
+                                triggerToast(`Preset carregado: ${preset.name}!`);
+                              }}
+                              className="px-1 py-1 bg-white border border-[#9b9fa6]/35 text-[9px] font-bold text-primary rounded-lg text-center hover:bg-slate-50 cursor-pointer truncate font-sans"
+                              title={preset.name}
+                            >
+                              🏢 {preset.name.split(' ')[0]}
+                            </button>
+                          ))}
+                        </div>
+                        <input
+                          type="text"
+                          value={editRoomImage0}
+                          onChange={(e) => setEditRoomImage0(e.target.value)}
+                          placeholder="Cole o endereço/link web de outra foto"
+                          className="w-full px-3 py-2 text-xs rounded-lg border border-outline-alt/50 bg-white text-primary outline-none focus:ring-1 focus:ring-secondary font-mono mt-1"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* SEÇÃO 4: Editar Imagem */}
+                  <div className="space-y-4 pt-4 border-t border-secondary/10">
+                    <h5 className="text-[10px] uppercase font-black tracking-wider text-secondary flex items-center gap-1.5 font-sans font-extrabold select-none">
+                      <SlidersHorizontal className="w-3.5 h-3.5" /> SEÇÃO 4: Editar Imagem
+                    </h5>
+
+                    <div className="bg-white/50 p-4 border border-[#c2c7cf]/40 rounded-xl space-y-3 font-sans">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {/* Zoom */}
+                        <div className="space-y-1">
+                          <div className="flex justify-between text-[10px] font-bold text-slate-700">
+                            <span>Zoom</span>
+                            <span className="text-secondary">{editImgZooms[0] || 100}%</span>
+                          </div>
+                          <input
+                            type="range"
+                            min="100"
+                            max="300"
+                            step="2"
+                            value={editImgZooms[0] || 100}
+                            onChange={(e) => {
+                              const val = Number(e.target.value);
+                              setEditImgZooms(prev => [val, prev[1], prev[2]]);
+                            }}
+                            className="w-full h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-secondary"
+                          />
+                        </div>
+
+                        {/* Rotate */}
+                        <div className="space-y-1">
+                          <span className="text-[10px] font-bold text-slate-700 block text-left font-sans">Rotacionar</span>
+                          <div className="flex gap-1.5 font-sans">
+                            {[0, 90, 180, 270].map((deg) => (
+                              <button
+                                key={deg}
+                                type="button"
+                                onClick={() => setEditImgRotate(deg)}
+                                className={`flex-1 py-0.5 text-[9px] font-bold rounded border cursor-pointer transition-all ${
+                                  editImgRotate === deg 
+                                    ? 'bg-slate-900 border-black text-white' 
+                                    : 'bg-white hover:bg-slate-100 text-slate-700 border-outline-alt/40'
+                                }`}
+                              >
+                                {deg}°
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Brightness */}
+                        <div className="space-y-1 font-sans font-sans">
+                          <div className="flex justify-between text-[10px] font-bold text-slate-700">
+                            <span>Brilho</span>
+                            <span className="text-secondary">{editImgBrightness}%</span>
+                          </div>
+                          <input
+                            type="range"
+                            min="50"
+                            max="150"
+                            step="2"
+                            value={editImgBrightness}
+                            onChange={(e) => setEditImgBrightness(Number(e.target.value))}
+                            className="w-full h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-secondary"
+                          />
+                        </div>
+
+                        {/* Contrast */}
+                        <div className="space-y-1 font-sans">
+                          <div className="flex justify-between text-[10px] font-bold text-slate-700">
+                            <span>Contraste</span>
+                            <span className="text-secondary">{editImgContrast}%</span>
+                          </div>
+                          <input
+                            type="range"
+                            min="50"
+                            max="150"
+                            step="2"
+                            value={editImgContrast}
+                            onChange={(e) => setEditImgContrast(Number(e.target.value))}
+                            className="w-full h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-secondary"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex justify-end pt-2 border-t border-outline-alt/10">
                         <button
-                          key={amenity.label}
                           type="button"
                           onClick={() => {
-                            setEditRoomFeatures(prev => 
-                              prev.includes(valueString)
-                                ? prev.filter(f => f !== valueString)
-                                : [...prev, valueString]
-                            );
+                            setEditImgZooms([100, 100, 100]);
+                            setEditImgPosXs([50, 50, 50]);
+                            setEditImgPosYs([50, 50, 50]);
+                            setEditImgRotate(0);
+                            setEditImgBrightness(100);
+                            setEditImgContrast(100);
                           }}
-                          className={`flex items-center gap-2.5 p-2 px-3 border rounded-xl cursor-pointer select-none transition-all text-left ${
-                            isSelected
-                              ? 'bg-slate-900 border-slate-950 text-white shadow-xs'
-                              : 'bg-white hover:bg-slate-50 border-outline-alt/45 text-slate-700'
-                          }`}
+                          className="px-2.5 py-0.5 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 font-bold rounded cursor-pointer text-[9px] font-sans"
                         >
-                          <span className="text-base">{amenity.emoji}</span>
-                          <span className="font-semibold text-[11px] leading-tight">{amenity.label}</span>
+                          Redefinir
                         </button>
-                      );
-                    })}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* SEÇÃO 5: Presets (chips) */}
+                  <div className="space-y-3 font-sans">
+                    <h5 className="text-[10px] uppercase font-black tracking-wider text-secondary flex items-center gap-1.5 font-sans font-extrabold select-none">
+                      <Sparkles className="w-3.5 h-3.5" /> Especialidades / Presets
+                    </h5>
+                    
+                    <div className="flex flex-wrap gap-2">
+                      {[
+                        { label: 'Psicologia', value: '🧠 Psicologia' },
+                        { label: 'Pediatria', value: '🧸 Pediatria' },
+                        { label: 'Multidisciplinar', value: '🤝 Multidisciplinar' },
+                        { label: 'Neuro', value: '⚡ Neuro' },
+                        { label: 'Terapia', value: '🌱 Terapia' }
+                      ].map((preset) => {
+                        const isSelected = editRoomFeatures.includes(preset.value);
+                        return (
+                          <button
+                            key={preset.label}
+                            type="button"
+                            onClick={() => {
+                              setEditRoomFeatures(prev => 
+                                prev.includes(preset.value)
+                                  ? prev.filter(f => f !== preset.value)
+                                  : [...prev, preset.value]
+                              );
+                            }}
+                            className={`px-4 py-2 text-xs font-bold rounded-full border transition-all cursor-pointer ${
+                              isSelected
+                                ? 'bg-slate-900 border-slate-900 text-white shadow-2xs'
+                                : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700'
+                            }`}
+                          >
+                            {preset.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Clean list of standard room amenities */}
+                    <div className="pt-2 font-sans">
+                      <span className="text-[10px] font-bold text-slate-400 block uppercase tracking-wider mb-2 select-none">Comodidades Básicas</span>
+                      <div className="flex flex-wrap gap-1.5 font-sans">
+                        {AMENITIES_LIST.map((amenity) => {
+                          const valStr = `${amenity.emoji} ${amenity.label}`;
+                          const isSelected = editRoomFeatures.includes(valStr);
+                          return (
+                            <button
+                              key={amenity.label}
+                              type="button"
+                              onClick={() => {
+                                setEditRoomFeatures(prev =>
+                                  prev.includes(valStr) ? prev.filter(f => f !== valStr) : [...prev, valStr]
+                                );
+                              }}
+                              className={`px-3 py-1.5 text-[11px] rounded-lg border transition-all cursor-pointer flex items-center gap-1 ${
+                                isSelected
+                                  ? 'bg-slate-100 border-slate-300 text-slate-900 font-bold'
+                                  : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-500 font-semibold'
+                              }`}
+                            >
+                              <span>{amenity.emoji}</span>
+                              <span className="text-[10px]">{amenity.label}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* SEÇÃO 6: Descrição */}
+                  <div className="space-y-1 font-sans">
+                    <h5 className="text-[10px] uppercase font-black tracking-wider text-secondary flex items-center gap-1.5 font-sans font-extrabold select-none">
+                      <FileText className="w-3.5 h-3.5" /> Descrição do Consultório
+                    </h5>
+                    <textarea
+                      rows={3}
+                      required
+                      value={editRoomDescription}
+                      onChange={(e) => setEditRoomDescription(e.target.value)}
+                      placeholder="Descreva de forma acolhedora os recursos do espaço..."
+                      className="w-full px-3.5 py-2 text-xs rounded-xl border border-secondary/25 bg-white text-slate-800 focus:border-slate-400 focus:outline-none transition-all placeholder:text-slate-400 leading-relaxed font-sans"
+                    />
+                  </div>
+
+                </div>
+
+                {/* Right Column: SEÇÃO 3: Prévia do Consultório (Live Preview) (occupies lg:col-span-5) */}
+                <div className="lg:col-span-5 text-left lg:sticky lg:top-6 space-y-3 font-sans">
+                  <h5 className="text-[10px] uppercase font-black tracking-wider text-[#38761d] bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-full inline-block select-none">
+                    👁️ SEÇÃO 3: Prévia do Consultório
+                  </h5>
+
+                  <div className="flex flex-col bg-white border border-outline-alt/25 rounded-3xl overflow-hidden shadow-lg border-secondary ring-2 ring-secondary/20 min-w-[280px] font-sans">
+                    <div className="h-60 w-full overflow-hidden relative bg-slate-100">
+                      {editRoomImage0 ? (
+                        <img
+                          src={editRoomImage0}
+                          alt={editRoomNameOnly || 'Visualização do Consultório'}
+                          className="w-full h-full object-cover transition-all"
+                          style={{
+                            transform: `scale(${(editImgZooms[0] || 100) / 100}) rotate(${editImgRotate || 0}deg)`,
+                            objectPosition: `${(editImgPosXs[0] || 50)}% ${(editImgPosYs[0] || 50)}%`,
+                            filter: `brightness(${editImgBrightness || 100}%) contrast(${editImgContrast || 100}%)`
+                          }}
+                          referrerPolicy="no-referrer"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-slate-400 text-xs font-sans font-sans">Sem Foto</div>
+                      )}
+                      
+                      <div className="absolute top-3 left-3 bg-secondary/90 backdrop-blur-xs text-white text-[9px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-xl">
+                        {editRoomSize ? `Sala ${editRoomSize}` : 'Consultório'}
+                      </div>
+                      
+                      <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-xs text-primary text-xs font-bold px-2 py-1 rounded-xl flex items-center gap-1 shadow select-none flex-nowrap">
+                        <Star className="w-3 h-3 fill-secondary text-secondary" />
+                        <span>{(editingRoom.rating || 5.0).toFixed(1)}</span>
+                      </div>
+
+                      <div className="absolute bottom-3 left-3 bg-black/70 backdrop-blur-xs text-white text-xs font-bold px-3 py-1 rounded-lg">
+                        R$ {parseFormattedPrice(editRoomPrice).toFixed(2).replace('.', ',')} / hora
+                      </div>
+                    </div>
+
+                    <div className="p-5 flex-grow space-y-3 bg-slate-50/35 border-t border-outline-alt/10 font-sans">
+                      <div className="space-y-1 text-left">
+                        <h3 className="font-sans font-extrabold text-sm text-primary leading-snug">
+                          {editRoomNameOnly || 'Nome do Consultório'}
+                        </h3>
+                        <p className="text-[10px] text-slate-400 font-bold flex items-center gap-1">
+                          <MapPin className="w-3 h-3 text-slate-400" />
+                          <span className="truncate">{editRoomLocation || 'Endereço da Unidade'}</span>
+                        </p>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-1 select-none font-sans">
+                        {editRoomFeatures.map((feat, i) => (
+                          <span key={i} className="flex items-center gap-1 text-[11px] font-bold text-slate-700 bg-slate-100 rounded-lg px-2 py-0.5">
+                            {getAmenityIcon(feat, "w-3 h-3 text-slate-500")}
+                            <span>{cleanAmenityLabel(feat)}</span>
+                          </span>
+                        ))}
+                      </div>
+
+                      <p className="font-sans text-[10px] text-brand-variant line-clamp-3 leading-relaxed text-left">
+                        {editRoomDescription || 'A descrição e as comodidades do consultório clínico serão preservadas ao salvar.'}
+                      </p>
+                    </div>
                   </div>
                 </div>
+
               </div>
 
-              <div className="flex justify-end gap-3 pt-2">
+              <div className="flex justify-end gap-3 pt-4 border-t border-slate-200 mt-5 font-sans">
                 <button
                   type="button"
                   onClick={() => setEditingRoom(null)}
-                  className="px-5 py-2.5 text-xs text-brand-variant font-bold border border-[#c2c7cf] hover:bg-outline-alt/10 rounded-xl transition-all cursor-pointer"
+                  className="px-5 py-2.5 text-xs text-slate-600 font-bold hover:bg-slate-100 rounded-xl transition-all cursor-pointer font-sans"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 text-xs text-white font-bold bg-[#38761d] hover:bg-green-700 rounded-xl shadow-md cursor-pointer"
+                  className="px-5 py-2.5 text-xs text-white font-bold bg-secondary hover:bg-secondary/95 rounded-xl shadow-md cursor-pointer font-sans"
                 >
                   Confirmar Edição
                 </button>
@@ -1307,31 +1883,25 @@ export default function AdminDashboardView({
                           <span className="text-[9px] font-black text-secondary uppercase tracking-wider bg-secondary/10 px-2.5 py-0.5 rounded-md">
                             {isExecutivo ? 'Executivo Luxo' : (isPremium ? 'Premium' : 'Standard')}
                           </span>
-                          <div className="flex items-center gap-2 text-[10px] text-brand-variant font-bold">
-                            <span className="flex items-center gap-0.5">📐 {room.size || '32m²'}</span>
-                            <span className="flex items-center gap-0.5">👥 {room.capacity || 'Clínica'}</span>
-                          </div>
                         </div>
 
                         <h3 className="font-sans font-extrabold text-base text-primary leading-tight">
                           {room.name}
                         </h3>
 
-                        <p className="font-sans text-[11px] text-brand-variant line-clamp-2 leading-relaxed">
-                          {room.description}
-                        </p>
-
-                        {/* Elegant Black & White Amenities Icons */}
-                        <div className="flex flex-wrap gap-1.5 py-1">
+                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-brand-variant font-medium">
                           {room.features.map((feat, i) => (
-                            <span 
-                              key={i} 
-                              className="inline-flex items-center gap-1 text-[10px] font-semibold text-black bg-white border border-black/15 shadow-2xs px-2.5 py-0.5 rounded-full transition-all"
-                            >
-                              {feat}
+                            <span key={i} className="flex items-center gap-1.5 whitespace-nowrap">
+                              {getAmenityIcon(feat, "w-3 h-3 text-secondary")}
+                              <span>{cleanAmenityLabel(feat)}</span>
+                              {i < room.features.length - 1 && <span className="text-black/15 ml-1 select-none">•</span>}
                             </span>
                           ))}
                         </div>
+
+                        <p className="font-sans text-[11px] text-brand-variant line-clamp-2 leading-relaxed">
+                          {room.description}
+                        </p>
                       </div>
                     </div>
 
@@ -1345,28 +1915,71 @@ export default function AdminDashboardView({
                           </p>
                         </div>
 
+                        {/* Direct Scheduling Sync/ID Link copy trigger */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const url = `${window.location.origin}/?sala=${room.id}`;
+                            navigator.clipboard.writeText(url);
+                            triggerToast(`📋 Link de agendamento copiado para a sala: ${room.name}!`);
+                          }}
+                          className="w-full text-center font-black text-[10px] text-white bg-slate-950 hover:bg-slate-800 py-2 rounded-xl transition duration-150 cursor-pointer flex items-center justify-center gap-1.5 font-sans"
+                        >
+                          <svg className="w-3 h-3 text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                          </svg>
+                          <span>Copiar Link da Agenda</span>
+                        </button>
+
                         {/* Double button admin editors built meticulously into card bottom */}
-                        <div className="grid grid-cols-2 gap-2 mt-1">
-                          <button
-                            type="button"
-                            onClick={() => handleSelectRoomForEditing(room)}
-                            className="text-center font-bold text-[10px] text-primary border border-[#c2c7cf] hover:bg-slate-50 py-2.5 rounded-xl transition duration-150 cursor-pointer flex items-center justify-center gap-1 font-sans"
-                            title="Editar Informações da Sala"
-                          >
-                            <FileEdit className="w-3.5 h-3.5" />
-                            <span>Editar</span>
-                          </button>
-                          
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteRoom(room.id)}
-                            className="text-center font-bold text-[10px] text-red-600 bg-red-50 border border-red-200/40 hover:bg-red-100 py-2.5 rounded-xl transition duration-150 cursor-pointer flex items-center justify-center gap-1 font-sans"
-                            title="Excluir Sala com Cuidado"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                            <span>Excluir</span>
-                          </button>
-                        </div>
+                        {deletingRoomId === room.id ? (
+                          <div className="bg-red-50/90 border border-red-200 p-2.5 rounded-xl flex items-center justify-between gap-1.5 animate-fade-in">
+                            <span className="text-[9px] text-red-700 font-extrabold select-none">Excluir consultório?</span>
+                            <div className="flex gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const updatedRooms = rooms.filter(r => r.id !== room.id);
+                                  onUpdateRooms(updatedRooms);
+                                  triggerToast('Sala removida com sucesso de Palhoça.');
+                                  setDeletingRoomId(null);
+                                }}
+                                className="px-2.5 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded font-sans font-bold text-[9px] cursor-pointer transition-all shadow-xs"
+                              >
+                                Sim
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setDeletingRoomId(null)}
+                                className="px-2.5 py-1.5 bg-white text-slate-700 border border-slate-350 hover:bg-slate-50 rounded font-sans font-bold text-[9px] cursor-pointer transition-all"
+                              >
+                                Não
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-2 gap-2">
+                            <button
+                              type="button"
+                              onClick={() => handleSelectRoomForEditing(room)}
+                              className="text-center font-bold text-[10px] text-primary border border-[#c2c7cf] hover:bg-slate-50 py-2.5 rounded-xl transition duration-150 cursor-pointer flex items-center justify-center gap-1 font-sans"
+                              title="Editar Informações da Sala"
+                            >
+                              <FileEdit className="w-3.5 h-3.5" />
+                              <span>Editar</span>
+                            </button>
+                            
+                            <button
+                              type="button"
+                              onClick={() => setDeletingRoomId(room.id)}
+                              className="text-center font-bold text-[10px] text-red-600 bg-red-50 border border-red-200/40 hover:bg-red-100 py-2.5 rounded-xl transition duration-150 cursor-pointer flex items-center justify-center gap-1 font-sans"
+                              title="Excluir Sala com Cuidado"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                              <span>Excluir</span>
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1575,6 +2188,7 @@ export default function AdminDashboardView({
                         <div className="flex gap-2 w-full sm:w-auto">
                           {status !== 'Aprovado' && (
                             <button
+                              type="button"
                               onClick={() => updateStatus('Aprovado')}
                               className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-sans font-bold text-xs flex items-center gap-1 cursor-pointer flex-1 sm:flex-initial justify-center shadow-sm"
                             >
@@ -1584,6 +2198,7 @@ export default function AdminDashboardView({
                           )}
                           {status !== 'Rejeitado' && (
                             <button
+                              type="button"
                               onClick={() => updateStatus('Rejeitado')}
                               className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-sans font-bold text-xs flex items-center gap-1 cursor-pointer flex-1 sm:flex-initial justify-center shadow-sm"
                             >
@@ -1593,11 +2208,46 @@ export default function AdminDashboardView({
                           )}
                           {status !== 'Pendente' && (
                             <button
+                              type="button"
                               onClick={() => updateStatus('Pendente')}
                               className="px-4 py-2 bg-white text-[#42474e] border border-[#c2c7cf] hover:bg-slate-100 rounded-lg font-sans font-semibold text-xs flex items-center gap-1 cursor-pointer flex-1 sm:flex-initial justify-center"
                             >
                               <RefreshCw className="w-3.5 h-3.5" />
                               <span>Reanalisar</span>
+                            </button>
+                          )}
+                          {deletingUserEmail === user.email ? (
+                            <div className="flex items-center gap-1.5 bg-red-100/60 border border-red-200/80 p-1.5 rounded-lg animate-fade-in">
+                              <span className="text-[10px] text-red-800 font-bold px-1 select-none">Excluir profissional permanentemente?</span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const updated = registeredUsers.filter(u => u.email !== user.email);
+                                  onUpdateUsers(updated);
+                                  triggerToast('Profissional excluído do sistema com sucesso! 🗑️');
+                                  setDeletingUserEmail(null);
+                                }}
+                                className="px-2.5 py-1.5 bg-red-600 hover:bg-red-700 text-white font-sans font-bold text-[10px] rounded cursor-pointer transition-all shadow-xs"
+                              >
+                                Sim
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setDeletingUserEmail(null)}
+                                className="px-2.5 py-1.5 bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 font-sans font-bold text-[10px] rounded cursor-pointer transition-all"
+                              >
+                                Não
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => setDeletingUserEmail(user.email)}
+                              className="px-4 py-2 bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 rounded-lg font-sans font-bold text-xs flex items-center gap-1 cursor-pointer flex-1 sm:flex-initial justify-center transition-all"
+                              title="Excluir profissional permanentemente"
+                            >
+                              <Trash2 className="w-3.5 h-3.5 text-red-600" />
+                              <span>Excluir Cadastro</span>
                             </button>
                           )}
                         </div>
@@ -1661,18 +2311,38 @@ export default function AdminDashboardView({
                       </div>
 
                       {isConfirmed ? (
-                        <button
-                          onClick={() => {
-                            if (confirm('Deseja realmente cancelar este agendamento?')) {
-                              onCancelBooking(booking.id);
-                              triggerToast('Agendamento cancelado com sucesso.');
-                            }
-                          }}
-                          className="p-2 border border-red-200 hover:bg-red-50 text-red-600 rounded-lg transition-colors cursor-pointer"
-                          title="Cancelar Agendamento"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        cancellingBookingId === booking.id ? (
+                          <div className="flex items-center gap-1.5 bg-red-100/60 border border-red-200/80 p-1.5 rounded-lg animate-fade-in shadow-xs">
+                            <span className="text-[10px] text-red-800 font-extrabold px-1 select-none whitespace-nowrap">Cancelar?</span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                onCancelBooking(booking.id);
+                                triggerToast('Agendamento cancelado com sucesso.');
+                                setCancellingBookingId(null);
+                              }}
+                              className="px-2.5 py-1 bg-red-600 hover:bg-red-700 text-white font-sans font-bold text-[10px] rounded cursor-pointer transition-all"
+                            >
+                              Sim
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setCancellingBookingId(null)}
+                              className="px-2.5 py-1 bg-white text-slate-700 border border-slate-305 hover:bg-slate-50 font-sans font-bold text-[10px] rounded cursor-pointer transition-all"
+                            >
+                              Não
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setCancellingBookingId(booking.id)}
+                            className="p-2 border border-red-200 hover:bg-red-50 text-red-600 rounded-lg transition-colors cursor-pointer"
+                            title="Cancelar Agendamento"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )
                       ) : (
                         <span className="text-xs font-bold text-red-600 bg-red-100 px-3 py-1 rounded-full border border-red-200">
                           Cancelado

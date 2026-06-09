@@ -1,5 +1,6 @@
 import { Star, ArrowRight, ShieldCheck } from 'lucide-react';
 import { Room, AdminSettings } from '../types';
+import { getAmenityIcon, cleanAmenityLabel } from './BookingPageView';
 
 interface LandingPageViewProps {
   rooms: Room[];
@@ -86,7 +87,12 @@ export default function LandingPageView({ rooms, adminSettings, setView, onSelec
                     <img
                       src={room.images[0]}
                       alt={room.name}
-                      className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-500"
+                      className="w-full h-full object-cover transition-all"
+                      style={room.imageSettings ? {
+                        transform: `scale(${(room.imageSettings.zoom || 100) / 100}) rotate(${room.imageSettings.rotate || 0}deg)`,
+                        objectPosition: `${room.imageSettings.posX ?? 50}% ${room.imageSettings.posY ?? 50}%`,
+                        filter: `brightness(${room.imageSettings.brightness ?? 100}%) contrast(${room.imageSettings.contrast ?? 100}%)`
+                      } : undefined}
                       referrerPolicy="no-referrer"
                     />
                     <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-md px-2.5 py-1 rounded-full text-xs font-bold text-secondary border border-secondary/10 flex items-center gap-1 shadow-sm">
@@ -101,14 +107,19 @@ export default function LandingPageView({ rooms, adminSettings, setView, onSelec
                       <span className="text-[10px] font-black text-secondary uppercase tracking-wider bg-secondary/10 px-2.5 py-0.5 rounded-md">
                         {room.type === 'executivo_luxo' ? 'Executivo Luxo' : (room.type === 'premium' ? 'Premium' : 'Standard')}
                       </span>
-                      <div className="flex items-center gap-3 text-[11px] text-brand-variant font-bold">
-                        <span className="flex items-center gap-1">📐 {room.size}</span>
-                        <span className="flex items-center gap-1">👥 {room.capacity}</span>
-                      </div>
                     </div>
                     <h3 className="font-sans font-extrabold text-lg text-primary leading-snug">
                       {room.name}
                     </h3>
+                    <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-brand-variant font-medium">
+                      {room.features.map((feat, i) => (
+                        <span key={i} className="flex items-center gap-1.5 whitespace-nowrap">
+                          {getAmenityIcon(feat, "w-3.5 h-3.5 text-secondary")}
+                          <span>{cleanAmenityLabel(feat)}</span>
+                          {i < room.features.length - 1 && <span className="text-black/15 ml-1 select-none">•</span>}
+                        </span>
+                      ))}
+                    </div>
                     <p className="font-sans text-xs text-brand-variant line-clamp-2 leading-relaxed">
                       {room.description}
                     </p>

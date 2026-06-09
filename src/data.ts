@@ -16,7 +16,7 @@ export const INITIAL_ROOMS: Room[] = [
       'https://lh3.googleusercontent.com/aida-public/AB6AXuAoW3_3-lK3ixFkeSUuv13KklvQeADvFsiWG-M2JXqkPo3zc351XK-v-QY5B6WZhMFYcdux00x9OQx8JQ3t81CRSw19hEzWMubmMom5eMM-9Jwz14jeGfJBQe8fV4f5h3ioRQdGt2JHH92cElgmq9VuAOcTw7-9w7x1_cltDMQPUqRRNV5kEMi9GPzjkXYtGddkTSaSfaEtayWZ4p31vYarH7bg2go2QjYVqVzV4JvlyzqGLQH-dZynak73vV5-YBhcm0oWpMxUf0w',
       'https://lh3.googleusercontent.com/aida-public/AB6AXuCdpXHREN-QWcd67D_wGIJbs3ugwHlEy92X1GdvLbhbJMPteWIosVN4tyn0mJAujV_MLqr4wf5hr1_xLhKQ0gMkx42oheij2O3qt1iuVl5zYdks49Fe2Inscf1_J6MizfqEFmFSAbKUgRNJ3tSOdD9R0SsTXsP6PSHjz7Bu0Ma0EHo1CdP1ETtTVyVNOgh-bPgDOaWP4htLDgTeMQj4kfJyBz_rf8jR1zGNgKxKYL4ApQJXmNusdgGEysPn3ayKu7g8hZzJq9-quj8'
     ],
-    features: ['📶 Wi-Fi', '☕ Café', '❄️ Climatizado', '🔇 Acústico', '🛎️ Recepção']
+    features: ['📶 Wi-Fi', '☕ Copa', '❄️ Climatizado', '🔇 Acústico', '🛎️ Recepção']
   },
   {
     id: 'room-01',
@@ -33,7 +33,7 @@ export const INITIAL_ROOMS: Room[] = [
       'https://lh3.googleusercontent.com/aida-public/AB6AXuAoW3_3-lK3ixFkeSUuv13KklvQeADvFsiWG-M2JXqkPo3zc351XK-v-QY5B6WZhMFYcdux00x9OQx8JQ3t81CRSw19hEzWMubmMom5eMM-9Jwz14jeGfJBQe8fV4f5h3ioRQdGt2JHH92cElgmq9VuAOcTw7-9w7x1_cltDMQPUqRRNV5kEMi9GPzjkXYtGddkTSaSfaEtayWZ4p31vYarH7bg2go2QjYVqVzV4JvlyzqGLQH-dZynak73vV5-YBhcm0oWpMxUf0w',
       'https://lh3.googleusercontent.com/aida-public/AB6AXuCdpXHREN-QWcd67D_wGIJbs3ugwHlEy92X1GdvLbhbJMPteWIosVN4tyn0mJAujV_MLqr4wf5hr1_xLhKQ0gMkx42oheij2O3qt1iuVl5zYdks49Fe2Inscf1_J6MizfqEFmFSAbKUgRNJ3tSOdD9R0SsTXsP6PSHjz7Bu0Ma0EHo1CdP1ETtTVyVNOgh-bPgDOaWP4htLDgTeMQj4kfJyBz_rf8jR1zGNgKxKYL4ApQJXmNusdgGEysPn3ayKu7g8hZzJq9-quj8'
     ],
-    features: ['📶 Wi-Fi', '☕ Café', '❄️ Climatizado', '🔇 Acústico', '🛎️ Recepção', '🚻 Banheiro']
+    features: ['📶 Wi-Fi', '☕ Copa', '❄️ Climatizado', '🔇 Acústico', '🛎️ Recepção', '🚻 Banheiro']
   },
   {
     id: 'room-02',
@@ -50,7 +50,7 @@ export const INITIAL_ROOMS: Room[] = [
       'https://lh3.googleusercontent.com/aida-public/AB6AXuDSOAn5HZyu7WEqYVFBOzzoPHvuwBHFTTZcZBnx8uYIZq5kAX0ZG_p-ofJYSTLaYK0HwreNWa0vC7sU2l8zb358cOaeRVzLhrKbOBdCv1xmK62nHSqlA9tb8w1CXAb8thw1nQPTxqbGYXH0ZKS8k7ATUygNSCzXtfRK4YBcEerJbZY7Nz50qdqln5LigsKVBa8OM0QFPWLcw8GDa9y3jIrpi4f7YX-St_j4NDZyT8vSFM5-g0JnR0TT9eEyep-7RiZCOzuyBXOK0Mk',
       'https://lh3.googleusercontent.com/aida-public/AB6AXuA7objypSuPMQ70F_1fIq62_q7V8FxXQFkKSaGr7KwG-ABO72DUUIljciACxJ1W2hWwtyBmavSsx8EVgcnsrDFl7SRAYsmwE6KkGhhx71uLb8-4TMvSTdQ_ur4-IC4fz2PN5PwrzhRC-S-UblbNSK4u1PTAO8-j1j-cV3mStLIG-mdcQX2W-mHD2LtlzY3rORgcnKLmLT2sPA9caTIvZe61IkYHvyv9-oDlUjAvCfwSa5FAa4pYRpark3fc-kH8l6BroblVKTjApRQ'
     ],
-    features: ['📶 Wi-Fi', '☕ Café', '🚗 Estacionamento', '❄️ Climatizado', '🔇 Acústico', '🛎️ Recepção', '🛗 Elevador']
+    features: ['📶 Wi-Fi', '☕ Copa', '🚗 Estacionamento', '❄️ Climatizado', '🔇 Acústico', '🛎️ Recepção', '🛗 Elevador']
   },
   {
     id: 'room-03',
@@ -84,7 +84,7 @@ export const INITIAL_ROOMS: Room[] = [
       'https://lh3.googleusercontent.com/aida-public/AB6AXuAoW3_3-lK3ixFkeSUuv13KklvQeADvFsiWG-M2JXqkPo3zc351XK-v-QY5B6WZhMFYcdux00x9OQx8JQ3t81CRSw19hEzWMubmMom5eMM-9Jwz14jeGfJBQe8fV4f5h3ioRQdGt2JHH92cElgmq9VuAOcTw7-9w7x1_cltDMQPUqRRNV5kEMi9GPzjkXYtGddkTSaSfaEtayWZ4p31vYarH7bg2go2QjYVqVzV4JvlyzqGLQH-dZynak73vV5-YBhcm0oWpMxUf0w',
       'https://lh3.googleusercontent.com/aida-public/AB6AXuCdpXHREN-QWcd67D_wGIJbs3ugwHlEy92X1GdvLbhbJMPteWIosVN4tyn0mJAujV_MLqr4wf5hr1_xLhKQ0gMkx42oheij2O3qt1iuVl5zYdks49Fe2Inscf1_J6MizfqEFmFSAbKUgRNJ3tSOdD9R0SsTXsP6PSHjz7Bu0Ma0EHo1CdP1ETtTVyVNOgh-bPgDOaWP4htLDgTeMQj4kfJyBz_rf8jR1zGNgKxKYL4ApQJXmNusdgGEysPn3ayKu7g8hZzJq9-quj8'
     ],
-    features: ['📶 Wi-Fi', '☕ Café', '❄️ Climatizado', '🔇 Acústico', '📹 Videoconferência']
+    features: ['📶 Wi-Fi', '☕ Copa', '❄️ Climatizado', '🔇 Acústico', '📹 Videoconferência']
   },
   {
     id: 'room-05',
@@ -101,7 +101,7 @@ export const INITIAL_ROOMS: Room[] = [
       'https://lh3.googleusercontent.com/aida-public/AB6AXuAoW3_3-lK3ixFkeSUuv13KklvQeADvFsiWG-M2JXqkPo3zc351XK-v-QY5B6WZhMFYcdux00x9OQx8JQ3t81CRSw19hEzWMubmMom5eMM-9Jwz14jeGfJBQe8fV4f5h3ioRQdGt2JHH92cElgmq9VuAOcTw7-9w7x1_cltDMQPUqRRNV5kEMi9GPzjkXYtGddkTSaSfaEtayWZ4p31vYarH7bg2go2QjYVqVzV4JvlyzqGLQH-dZynak73vV5-YBhcm0oWpMxUf0w',
       'https://lh3.googleusercontent.com/aida-public/AB6AXuCdpXHREN-QWcd67D_wGIJbs3ugwHlEy92X1GdvLbhbJMPteWIosVN4tyn0mJAujV_MLqr4wf5hr1_xLhKQ0gMkx42oheij2O3qt1iuVl5zYdks49Fe2Inscf1_J6MizfqEFmFSAbKUgRNJ3tSOdD9R0SsTXsP6PSHjz7Bu0Ma0EHo1CdP1ETtTVyVNOgh-bPgDOaWP4htLDgTeMQj4kfJyBz_rf8jR1zGNgKxKYL4ApQJXmNusdgGEysPn3ayKu7g8hZzJq9-quj8'
     ],
-    features: ['📶 Wi-Fi', '☕ Café', '❄️ Climatizado', '🚻 Banheiro']
+    features: ['📶 Wi-Fi', '☕ Copa', '❄️ Climatizado', '🚻 Banheiro']
   }
 ];
 

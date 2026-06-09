@@ -167,6 +167,24 @@ export default function RegisterPageView({
     };
 
     onRegister(newProfile);
+    
+    // Notify registration via webhook
+    const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbwuCOimY2_91TvyrTwjzWVGSfexIQ0lg1DGeksYwWdo3_Vge5oGJMGnvgUJA8wmZvM/exec";
+    fetch(WEBHOOK_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        tipo: "cadastro",
+        nomeCompleto: name,
+        email: email,
+        telefone: phone,
+        registroConselho: registerNum
+      })
+    })
+    .then(() => console.log("Cadastro notificado com sucesso!"))
+    .catch((err) => console.error("Erro ao notificar cadastro:", err));
+
     setIsSubmitSuccess(true);
   };
 
