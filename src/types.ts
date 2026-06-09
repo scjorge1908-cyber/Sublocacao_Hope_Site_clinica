@@ -51,6 +51,7 @@ export interface AdminSettings {
   heroTitle: string;
   heroDescription: string;
   galleryImages: string[];
+  showGallery?: boolean;
   revenueTotalMonth: number;
   newBookingsCount: number;
   occupancyRate: number;
