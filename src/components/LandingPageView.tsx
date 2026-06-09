@@ -210,28 +210,6 @@ export default function LandingPageView({ rooms, adminSettings, setView, onSelec
         </div>
       </section>
 
-      {/* 5. GALLERY SECTION */}
-      {adminSettings.galleryImages && adminSettings.galleryImages.length > 0 && (
-        <section className="space-y-8" id="galeria">
-          <div className="text-center space-y-2">
-            <h2 className="font-sans font-extrabold text-3xl text-primary tracking-tight">Nossa Estrutura</h2>
-            <p className="font-sans text-brand-variant text-sm max-w-xl mx-auto">Equipamentos de ponta e infraestrutura requintada para total segurança jurídica e credibilidade.</p>
-          </div>
-
-          <div className="grid sm:grid-cols-2 gap-6 max-w-4xl mx-auto">
-            {adminSettings.galleryImages.map((img, i) => (
-              <div key={i} className="h-64 sm:h-80 rounded-2xl overflow-hidden border border-outline-alt/45 shadow-2xs">
-                <img
-                  src={img}
-                  alt={`Estrutura ${i + 1}`}
-                  className="w-full h-full object-cover hover:scale-102 transition-transform duration-500"
-                  referrerPolicy="no-referrer"
-                />
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
     </div>
   );
 }
