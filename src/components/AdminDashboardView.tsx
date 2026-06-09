@@ -97,6 +97,7 @@ export default function AdminDashboardView({
   const [plan2Price, setPlan2Price] = useState(adminSettings.plan2Price || '');
 
   const [gallery, setGallery] = useState<string[]>(adminSettings.galleryImages);
+  const [showGallery, setShowGallery] = useState<boolean>(adminSettings.showGallery !== false);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
 
@@ -317,6 +318,7 @@ export default function AdminDashboardView({
       heroTitle,
       heroDescription,
       galleryImages: gallery,
+      showGallery,
       heroImage,
       landingRoomsHeading,
       landingRoomsSub,
@@ -786,53 +788,8 @@ export default function AdminDashboardView({
                     placeholder="Descrição secundária"
                   />
                 </div>
-
-                {/* Portfólio Gallery image slot in Screen 2 */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <span className="text-[10px] uppercase font-bold tracking-wider text-brand-variant block">
-                      Adicionar Imagem à Galeria
-                    </span>
-                    <div
-                      onClick={handleAddMockImage}
-                      className="border-2 border-dashed border-[#c2c7cf] hover:border-secondary bg-brand-bg rounded-xl py-6 flex flex-col items-center justify-center cursor-pointer hover:bg-secondary/5 transition-colors text-center"
-                    >
-                      <Upload className="w-5 h-5 text-brand-variant mb-1" />
-                      <span className="text-[10px] font-bold text-primary font-sans">
-                        Fazer Upload de Foto (.png, .jpg)
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <span className="text-[10px] uppercase font-bold tracking-wider text-brand-variant block">
-                      Imagens Existentes ({gallery.length})
-                    </span>
-                    <div className="flex gap-2 flex-wrap items-start">
-                      {gallery.map((img, idx) => (
-                        <div key={idx} className="relative w-12 h-12 rounded-lg overflow-hidden border border-outline-alt group shadow-sm bg-[#ffffff]">
-                          <img
-                            src={img}
-                            alt={`Gallery clinical ${idx}`}
-                            className="w-full h-full object-cover"
-                            referrerPolicy="no-referrer"
-                          />
-                          <button
-                            onClick={() => setGallery(gallery.filter((_, i) => i !== idx))}
-                            className="absolute inset-0 bg-red-600/70 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white cursor-pointer"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      ))}
-                      <div className="w-12 h-12 rounded-lg bg-surface-container border border-dashed border-outline-alt flex items-center justify-center font-sans font-bold text-brand-variant text-xs cursor-pointer hover:bg-secondary/15 transition-all" onClick={handleAddMockImage}>
-                        +
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+              </div> {/* Closes space-y-4 editor wrapper */}
+            </div> {/* Closes xl:col-span-2 */}
 
                 {/* Custom Page Text Customizer Section */}
                 <div className="pt-6 border-t border-outline-alt/10 xl:col-span-3 space-y-6">
