@@ -122,6 +122,7 @@ export const INITIAL_ADMIN_SETTINGS: AdminSettings = {
     'https://lh3.googleusercontent.com/aida-public/AB6AXuC8xbfc0NAOHli8Bo-UPhayVSalcMdm3gsiNyDJWDfukJC1pa3EvIp0rq5LcyG8B098J8CjE2PvON36hkHBBWGLLGD-qeYrBGOtbSNo_ckJcfsaJtMHkhF3PWmevxUdvtD-NpFC741KculCj8aycAvABWcYGfLSefqnIRw7UwGxZAG3lxqLPvVmD0IwPvQ1fbd9emT_1dW3n-86619GkuP62zjRvGDjk2VHz4jHUAFiaWVOpoCvBV-X5m_PPp0GSaPRkzH1J3_ypFc',
     'https://lh3.googleusercontent.com/aida-public/AB6AXuBYpkVQC9cbGbgrCwOC07691oydQzzkmrg5ycT5gVm8MJJwp6i1lDXuxOinHgGQYQdnMmSNexaULk18N0QLAqmdvzGmSD5gACGOMZjNgw6iicIkm8TNkx3EcyjRbp3wF60dzA4EMcXAnFAIqtOQ8W8p0ejTMhvDHsxM-SgBV1Pd3b37F4FO3xZRepqvsT62L1LlYORn8BSeiwbHkwHfVhm90JhYCVw-Zwv4wyNIEEopQaQZH4cVK6aSoNWQoNCftsaV8zAjhO4vAz8'
   ],
+  showGallery: true,
   revenueTotalMonth: 14250,
   newBookingsCount: 48,
   occupancyRate: 76,
