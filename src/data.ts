@@ -129,7 +129,7 @@ export const INITIAL_ADMIN_SETTINGS: AdminSettings = {
   heroImage: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCpK_ydxVzclnmYMUAi0fsi4DzKI6JXpLmaD9G4jAA8rUDn6AyhwunUa4UddC_1JNYOekP_W2E3pKLnY14-QXm8nN9PhbUkw2T4tMo4n__v_aOuyEIuudaAeqR3IjtbOc3sKmovzJxlZF0_oLpSFqedv8UtqQPeoiR0TfKXgeDNA54dq6ZO_jVXIxUrPJbJnuDZXE8mtKjhRPaiyRxL1eG9phYCM4C3JrjDNRuBP1ov_16x1MXzql6-d_L4wU6RMKkt6WcTJNBkYDQ',
   landingRoomsHeading: 'Locação flexível com alto padrão',
   landingRoomsSub: 'Encontre salas equipadas que transmitem credibilidade e acolhimento para o seu paciente.',
-  bookingRoomsHeading: 'Disponibilidade Clínica (6 Salas em Palhoça)',
+  bookingRoomsHeading: 'Disponibilidade de horário.',
   trustTitle: '97 Profissionais Credenciados',
   trustDesc: 'Confiam na sublocaHope diariamente para sua rotina de atendimentos.',
   plan1Title: 'Reserva Avulsa',

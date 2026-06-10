@@ -120,7 +120,7 @@ export default function LandingPageView({ rooms, adminSettings, setView, onSelec
                         </span>
                       ))}
                     </div>
-                    <p className="font-sans text-xs text-brand-variant line-clamp-2 leading-relaxed">
+                    <p className="font-sans text-xs text-brand-variant leading-relaxed">
                       {room.description}
                     </p>
                   </div>

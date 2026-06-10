@@ -40,6 +40,10 @@ export default function App() {
         parsed.heroDescription = INITIAL_ADMIN_SETTINGS.heroDescription;
         localStorage.setItem('sublocahope_settings', JSON.stringify(parsed));
       }
+      if (!parsed.bookingRoomsHeading || parsed.bookingRoomsHeading.includes('Disponibilidade Clínica') || parsed.bookingRoomsHeading === 'Disponibilidade de Horário.' || parsed.bookingRoomsHeading !== INITIAL_ADMIN_SETTINGS.bookingRoomsHeading) {
+        parsed.bookingRoomsHeading = INITIAL_ADMIN_SETTINGS.bookingRoomsHeading;
+        localStorage.setItem('sublocahope_settings', JSON.stringify(parsed));
+      }
       return parsed;
     }
     return INITIAL_ADMIN_SETTINGS;

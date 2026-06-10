@@ -297,7 +297,7 @@ export default function RegisterPageView({
               <img
                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuA7U0Xp0PpruhJscN3OnqvosSElXdRftJk_flEdiivQtKLm6m4aSeIsilLbfpz_CxTnmtegH4sEKq3eVVanTJz_wro32LvDpECpDTkLApcQE9Li9sV3IA2OKUvojKxRa4rReVhpHTcrpcMbsF0xBHFtZQMql_wvkV1JdpgXBlRfnnc8nb-pK881_dTWXgqExgQ_rE_lTyhFznz8A35FjWnl6iDwsZbaRyN7W5ECECxpGT34TysECNTgE-Y6QLsS04lSrtCVEagUNVE"
                 alt="Healthcare Professional sublocaHope"
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover scale-[1.75] origin-[51%_60%] transition-transform duration-500"
                 referrerPolicy="no-referrer"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-primary/80 via-primary/30 to-transparent flex items-end p-8">

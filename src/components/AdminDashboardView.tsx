@@ -779,9 +779,15 @@ export default function AdminDashboardView({
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-brand-variant block">Descrição do Hero</label>
+                  <div className="flex justify-between items-center">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-brand-variant block">Descrição do Hero</label>
+                    <span className="text-[10px] text-brand-variant font-medium">
+                      {heroDescription.length} / 500 caracteres
+                    </span>
+                  </div>
                   <textarea
                     rows={3}
+                    maxLength={500}
                     value={heroDescription}
                     onChange={(e) => setHeroDescription(e.target.value)}
                     className="w-full px-4 py-3 rounded-xl border border-outline-alt/60 bg-brand-bg text-[#42474e] focus:ring-2 focus:ring-primary outline-none text-xs sm:text-sm leading-relaxed"
@@ -974,7 +980,7 @@ export default function AdminDashboardView({
                             value={bookingRoomsHeading}
                             onChange={(e) => setBookingRoomsHeading(e.target.value)}
                             className="w-full px-3 py-2 rounded-lg border border-outline-alt/40 bg-white text-xs outline-none focus:ring-1 focus:ring-primary font-bold"
-                            placeholder="Ex: Disponibilidade Clínica (6 Salas em Palhoça)"
+                            placeholder="Ex: Disponibilidade de horário."
                           />
                         </div>
                         <p className="text-[11px] text-brand-variant leading-relaxed bg-[#f1f6fc] p-3 rounded-lg border border-secondary/15">
@@ -1274,6 +1280,62 @@ export default function AdminDashboardView({
                     </div>
                   </div>
 
+                  {/* SEÇÃO 5: Comodidades do Novo Consultório */}
+                  <div className="space-y-4 pt-4 border-t border-secondary/10">
+                    <h5 className="text-[10px] uppercase font-black tracking-wider text-secondary flex items-center gap-1.5 font-sans font-extrabold select-none">
+                      <SlidersHorizontal className="w-3.5 h-3.5" /> SEÇÃO 5: Comodidades do Consultório
+                    </h5>
+
+                    <div className="space-y-3 font-sans">
+                      <div className="flex flex-wrap gap-1.5 font-sans font-sans">
+                        {AMENITIES_LIST.map((amenity) => {
+                          const valStr = `${amenity.emoji} ${amenity.label}`;
+                          const isSelected = newRoomFeatures.includes(valStr);
+                          return (
+                            <button
+                              key={`new-amenity-${amenity.label}`}
+                              type="button"
+                              onClick={() => {
+                                setNewRoomFeatures(prev =>
+                                  prev.includes(valStr) ? prev.filter(f => f !== valStr) : [...prev, valStr]
+                                );
+                              }}
+                              className={`px-3 py-1.5 text-[11px] rounded-lg border transition-all cursor-pointer flex items-center gap-1 ${
+                                isSelected
+                                  ? 'bg-slate-100 border-slate-300 text-slate-900 font-bold'
+                                  : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-500 font-semibold'
+                              }`}
+                            >
+                              <span>{amenity.emoji}</span>
+                              <span className="text-[10px]">{amenity.label}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* SEÇÃO 6: Descrição do Novo Consultório */}
+                  <div className="space-y-1 font-sans pt-4 border-t border-secondary/10">
+                    <div className="flex justify-between items-center">
+                      <h5 className="text-[10px] uppercase font-black tracking-wider text-secondary flex items-center gap-1.5 font-sans font-extrabold select-none">
+                        <FileText className="w-3.5 h-3.5" /> Descrição do Consultório
+                      </h5>
+                      <span className="text-[10px] text-brand-variant font-medium">
+                        {newRoomDescription.length} / 500 caracteres
+                      </span>
+                    </div>
+                    <textarea
+                      rows={3}
+                      required
+                      maxLength={500}
+                      value={newRoomDescription}
+                      onChange={(e) => setNewRoomDescription(e.target.value)}
+                      placeholder="Descreva de forma acolhedora os recursos do espaço..."
+                      className="w-full px-3.5 py-2 text-xs rounded-xl border border-secondary/25 bg-white text-slate-800 focus:border-slate-400 focus:outline-none transition-all placeholder:text-slate-400 leading-relaxed font-sans"
+                    />
+                  </div>
+
                 </div>
 
                 {/* Right Column: SEÇÃO 3: Prévia do Consultório (Live Preview) (occupies lg:col-span-5) */}
@@ -1319,21 +1381,18 @@ export default function AdminDashboardView({
                         <h3 className="font-sans font-extrabold text-sm text-primary leading-snug">
                           {newRoomName || 'Nome do Consultório'}
                         </h3>
-                        <div className="flex flex-wrap items-center gap-1 text-[10px] text-slate-500 font-medium">
-                          <span className="flex items-center gap-1 bg-slate-100 text-slate-700 rounded px-2 py-0.5">
-                            📶 Wi-Fi
-                          </span>
-                          <span className="flex items-center gap-1 bg-slate-100 text-slate-700 rounded px-2 py-0.5">
-                            ☕ Copa
-                          </span>
-                          <span className="flex items-center gap-1 bg-slate-100 text-slate-700 rounded px-2 py-0.5">
-                            ❄️ Climatizado
-                          </span>
+                        <div className="flex flex-wrap items-center gap-1 select-none font-sans">
+                          {newRoomFeatures.map((feat, i) => (
+                            <span key={i} className="flex items-center gap-1 text-[11px] font-bold text-slate-700 bg-slate-100 rounded-lg px-2 py-0.5">
+                              {getAmenityIcon(feat, "w-3 h-3 text-slate-500")}
+                              <span>{cleanAmenityLabel(feat)}</span>
+                            </span>
+                          ))}
                         </div>
                       </div>
 
-                      <p className="font-sans text-[10px] text-brand-variant line-clamp-3 leading-relaxed text-left">
-                        Consultório clínico equipado de alto padrão, pronto para atendimento com acústica de estúdio, ambiente climatizado e suporte da recepção.
+                      <p className="font-sans text-[10px] text-brand-variant leading-relaxed text-left">
+                        {newRoomDescription || 'Descreva de forma acolhedora os recursos do espaço...'}
                       </p>
                     </div>
                   </div>
@@ -1691,12 +1750,18 @@ export default function AdminDashboardView({
 
                   {/* SEÇÃO 6: Descrição */}
                   <div className="space-y-1 font-sans">
-                    <h5 className="text-[10px] uppercase font-black tracking-wider text-secondary flex items-center gap-1.5 font-sans font-extrabold select-none">
-                      <FileText className="w-3.5 h-3.5" /> Descrição do Consultório
-                    </h5>
+                    <div className="flex justify-between items-center">
+                      <h5 className="text-[10px] uppercase font-black tracking-wider text-secondary flex items-center gap-1.5 font-sans font-extrabold select-none">
+                        <FileText className="w-3.5 h-3.5" /> Descrição do Consultório
+                      </h5>
+                      <span className="text-[10px] text-brand-variant font-medium">
+                        {editRoomDescription.length} / 500 caracteres
+                      </span>
+                    </div>
                     <textarea
                       rows={3}
                       required
+                      maxLength={500}
                       value={editRoomDescription}
                       onChange={(e) => setEditRoomDescription(e.target.value)}
                       placeholder="Descreva de forma acolhedora os recursos do espaço..."
@@ -1764,7 +1829,7 @@ export default function AdminDashboardView({
                         ))}
                       </div>
 
-                      <p className="font-sans text-[10px] text-brand-variant line-clamp-3 leading-relaxed text-left">
+                      <p className="font-sans text-[10px] text-brand-variant leading-relaxed text-left">
                         {editRoomDescription || 'A descrição e as comodidades do consultório clínico serão preservadas ao salvar.'}
                       </p>
                     </div>
@@ -1856,7 +1921,7 @@ export default function AdminDashboardView({
                           ))}
                         </div>
 
-                        <p className="font-sans text-[11px] text-brand-variant line-clamp-2 leading-relaxed">
+                        <p className="font-sans text-[11px] text-brand-variant leading-relaxed">
                           {room.description}
                         </p>
                       </div>

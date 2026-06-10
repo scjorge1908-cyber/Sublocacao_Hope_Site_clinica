@@ -210,6 +210,72 @@ export default function BookingPageView({
   const [cardCvv, setCardCvv] = useState('');
   const [paymentLoading, setPaymentLoading] = useState(false);
 
+  // Real full-stack Mercado Pago integration states
+  const [mpPreferenceId, setMpPreferenceId] = useState<string>('');
+  const [mpInitPoint, setMpInitPoint] = useState<string>('');
+  const [mpLoading, setMpLoading] = useState<boolean>(false);
+  const [mpError, setMpError] = useState<string>('');
+
+  useEffect(() => {
+    if (isSuccessModalOpen && recentBookings.length > 0) {
+      setMpLoading(true);
+      setMpError('');
+      
+      let emailAddress = 'scjorge1908@gmail.com';
+      try {
+        const savedProfile = localStorage.getItem('sublocahope_profile');
+        if (savedProfile) {
+          const parsed = JSON.parse(savedProfile);
+          if (parsed.email) {
+            emailAddress = parsed.email;
+          }
+        }
+      } catch (e) {
+        // Fallback
+      }
+
+      const compileBookingsPayload = recentBookings.map(b => {
+        const hasInsurance = reimbursementInsurance && activeProtectedSlotsCount > 0;
+        return {
+          id: b.id,
+          roomName: b.roomName,
+          date: b.date,
+          dateKey: b.dateKey,
+          timeSlots: b.timeSlots,
+          pricePerHour: b.pricePerHour,
+          hasInsurance: hasInsurance
+        };
+      });
+
+      fetch('/api/mercadopago/create-preference', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          bookings: compileBookingsPayload,
+          professionalEmail: emailAddress,
+          professionalName: professionalName || 'Dr(a). Visitante'
+        })
+      })
+      .then(res => {
+        if (!res.ok) throw new Error('Falha ao gerar preferência de pagamento.');
+        return res.json();
+      })
+      .then(data => {
+        setMpPreferenceId(data.preferenceId || '');
+        setMpInitPoint(data.init_point || '');
+      })
+      .catch(err => {
+        console.error(err);
+        setMpError('Erro ao conectar com API de pagamento: ' + err.message);
+      })
+      .finally(() => {
+        setMpLoading(false);
+      });
+    }
+  }, [isSuccessModalOpen, recentBookings, professionalName]);
+
   // Load all 6 rooms available in the clinic
   const allRooms = INITIAL_ROOMS;
 
@@ -686,42 +752,6 @@ export default function BookingPageView({
         </div>
       </section>
 
-      {/* Sync status bar */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 bg-slate-50 border border-outline-alt/20 p-4 rounded-2xl">
-        <div className="flex items-center gap-2">
-          <Database className="w-5 h-5 text-secondary animate-pulse" />
-          <p className="text-xs font-semibold text-primary">
-            Sincronizador Oficial Ativo: <span className="font-mono text-secondary">Google Sheets Integrado</span>
-          </p>
-        </div>
-        <div className="flex items-center gap-1.5 text-xs text-brand-variant font-bold">
-          <span className="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-          Conexão Segura Ativa SSL
-        </div>
-      </div>
-
-      {/* Visitor warning block: Force Login to Reserve rooms */}
-      {!professionalId && (
-        <div className="mb-8 bg-amber-50 border-l-4 border-amber-500 p-5 rounded-r-2xl text-amber-900 text-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-sm animate-fade-in relative z-10" id="login-required-warning-banner">
-          <div className="flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5 shrink-0" />
-            <div>
-              <span className="font-sans font-black text-amber-950 block text-sm">Reserva requer login ativo ⚠️</span>
-              <p className="font-sans font-medium text-xs text-amber-800 leading-relaxed mt-1">
-                Para fazer a reserva de qualquer consultório na sublocaHope, o profissional deve estar logado no sistema. Faça o login rápido ou crie sua conta para liberar os horários.
-              </p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={() => setView('register-login')}
-            className="w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-white text-xs font-black px-5 py-3 rounded-xl transition-all hover:scale-[1.02] cursor-pointer whitespace-nowrap text-center shadow-xs"
-          >
-            Fazer Login Clínico 📲
-          </button>
-        </div>
-      )}
-
       {/* Grid: Left column (Monthly Calendar) | Right column (Dynamic stats or help info) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-10">
         
@@ -820,6 +850,10 @@ export default function BookingPageView({
                   key={`day-${dayNum}`}
                   onClick={() => {
                     if (isBlocked) return;
+                    if (!professionalId || !professionalName) {
+                      setShowAuthRequiredModal(true);
+                      return;
+                    }
                     handleToggleDateStr(dateString);
                   }}
                   disabled={isBlocked}
@@ -853,10 +887,7 @@ export default function BookingPageView({
             })}
           </div>
           
-          <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between text-xs text-brand-variant font-medium pt-3 border-t border-slate-150 gap-2">
-            <span className="flex items-center gap-1.5 text-[#b45309] font-bold">
-              ⚠️ Regra de Antecedência: Só é possível agendar salas com no mínimo 25 horas antes.
-            </span>
+          <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-end text-xs text-brand-variant font-medium pt-3 border-t border-slate-150 gap-2">
             <span className="text-secondary font-bold font-mono">Dias Selecionados: {selectedDates.length}</span>
           </div>
         </div>
@@ -903,68 +934,38 @@ export default function BookingPageView({
                 <Clock className="w-4 h-4 text-[#bfdbfe]" />
                 <span>Múltiplos horários acumulam o valor proporcional correspondente.</span>
               </div>
-              <div className="flex items-center gap-2.5 text-brand-variant">
-                <Database className="w-4 h-4 text-secondary" />
-                <span>Integração de planilhas nativa ligada à sua conta de sublocação.</span>
-              </div>
             </div>
-          </div>
 
-          <div className="pt-6 border-t border-outline-alt/20 mt-6 lg:mt-0">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center text-secondary">
-                <ShieldCheck className="w-5 h-5" />
-              </div>
-              <div>
-                <span className="block text-xs font-bold text-primary">Regulação Sanitária</span>
-                <span className="block text-[11px] text-brand-variant">Ambientes 100% regulamentados.</span>
+            <div className="pt-4 border-t border-outline-alt/10 mt-2 space-y-3 font-sans">
+              <h4 className="font-extrabold text-[11px] text-primary flex items-center gap-1.5 uppercase tracking-wider text-slate-700">
+                🛡️ Política de Cancelamento
+              </h4>
+              <div className="space-y-2 text-brand-variant text-[11px] leading-relaxed">
+                <p>
+                  As reservas podem ser canceladas sem custos com até <strong className="text-primary font-bold">24 horas de antecedência</strong>.
+                </p>
+                <p>
+                  Após esse prazo, o cancelamento somente será permitido para reservas com a opção <strong className="text-secondary font-bold">Reserva Flexibilizada</strong>.
+                </p>
+                <div className="p-3 bg-amber-50/50 rounded-xl border border-amber-250/30 text-amber-900 space-y-1">
+                  <span className="font-extrabold block text-amber-950 text-[11px]">Reserva Flexibilizada – R$ 9,90 por hora</span>
+                  <p className="text-[10px] leading-relaxed text-amber-800 font-medium">
+                    Permite cancelar sua reserva com até <strong className="text-amber-950 font-bold">3 horas de antecedência</strong>, oferecendo mais segurança e flexibilidade para lidar com remarcações e cancelamentos de última hora dos pacientes.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
         </div>
+
+
       </div>
 
       {/* HEADER: CLINIC ROOMS SECTION */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 border-b border-outline-alt/25 pb-3">
-        <div className="space-y-1">
-          <h2 className="font-sans font-extrabold text-2xl text-primary flex items-center gap-2">
-            {adminSettings?.bookingRoomsHeading || "Disponibilidade Clínica (6 Salas em Palhoça)"}
-          </h2>
-          <div className="flex items-center gap-2 text-xs">
-            <span className="font-bold text-secondary">Sincronização Ativa:</span>
-            {syncStatus === 'loading' ? (
-              <span className="text-secondary flex items-center gap-1.5 animate-pulse">
-                <RefreshCw className="w-3 h-3 animate-spin" />
-                Carregando horários em tempo real...
-              </span>
-            ) : (
-              <span className="text-emerald-700 font-semibold bg-emerald-50 px-2 py-0.5 rounded leading-none border border-emerald-250">
-                Horários atualizados para {selectedDates.length === 1 ? selectedDates[0].split('-').reverse().join('/') : `${selectedDates.length} datas selecionadas`}
-              </span>
-            )}
-          </div>
-        </div>
-        <div className="flex flex-wrap items-center gap-4 text-xs font-sans font-semibold text-brand-variant bg-slate-50 border border-slate-200/80 p-2 rounded-2xl shadow-xs">
-          <div className="flex items-center gap-3">
-            <span className="flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded bg-secondary"></span>
-              Disponível
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded bg-outline-alt/40 border border-outline-alt/30"></span>
-              Reservado
-            </span>
-          </div>
-          <div className="hidden sm:block h-4 w-[1px] bg-slate-200"></div>
-          {/* Highlighted cancellation protection fee badge */}
-          <div className="bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-250/60 px-3 py-1.5 rounded-xl flex items-center gap-2 animate-pulse shadow-xs font-bold shrink-0 transition-colors">
-            <span className="flex h-2 w-2 relative">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
-            </span>
-            <span>🛡️ Taxa de Cancelamento Protegido: <strong className="text-amber-950 font-black">R$ 9,90/h</strong></span>
-          </div>
-        </div>
+      <div className="mb-6 border-b border-outline-alt/25 pb-3">
+        <h2 className="font-sans font-extrabold text-2xl text-primary flex items-center gap-2">
+          {adminSettings?.bookingRoomsHeading || "Disponibilidade de horário."}
+        </h2>
       </div>
 
       {/* 6 ROOM CARDS BENTO GRID */}
@@ -1028,7 +1029,7 @@ export default function BookingPageView({
                   </div>
                 </div>
 
-                <p className="text-xs text-brand-variant line-clamp-2 leading-relaxed">
+                <p className="text-xs text-brand-variant leading-relaxed">
                   {room.description}
                 </p>
 
@@ -1627,6 +1628,93 @@ export default function BookingPageView({
                 <div className="flex items-center justify-center gap-1.5 text-[#64748b] text-[10px] uppercase font-bold tracking-wider">
                   <Lock className="w-3.5 h-3.5 text-emerald-500" />
                   <span>Ambiente de pagamento 100% seguro</span>
+                </div>
+
+                {/* Mercado Pago API Integration Status Block */}
+                <div className="bg-slate-50 border border-slate-200/60 p-4 rounded-3xl space-y-3.5 text-xs font-sans">
+                  <div className="flex items-center justify-between">
+                    <span className="font-extrabold text-[#111827] flex items-center gap-1.5 uppercase text-[10px] tracking-wider">
+                      ⚡ INTEGRAÇÃO OFICIAL MERCADO PAGO API
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-amber-100 text-amber-800 animate-pulse">
+                      MODO TESTE / SANDBOX
+                    </span>
+                  </div>
+
+                  <div className="p-3 bg-amber-50 rounded-2xl border border-amber-200/40 text-amber-900 text-[11px] leading-relaxed">
+                    <span className="font-bold block text-amber-950 mb-0.5">💡 Ambiente de Homologação Ativo</span>
+                    Todos os pagamentos, assinaturas recorrentes e estornos parciais rodam sob regras de <strong>modo de teste</strong>. Nenhuma cobrança real será efetuada no seu cartão ou Pix real. Use os botões abaixo e dados sugestivos de teste com total segurança.
+                  </div>
+                  
+                  {mpLoading ? (
+                    <div className="flex items-center justify-center gap-2 text-slate-550 py-3.5 bg-white rounded-2xl border border-dashed border-slate-200">
+                      <RefreshCw className="w-4 h-4 animate-spin text-secondary" />
+                      <span className="font-bold">Gerando Preferência no Mercado Pago...</span>
+                    </div>
+                  ) : mpError ? (
+                    <div className="text-red-500 font-bold py-2 px-3 bg-red-50 rounded-xl border border-red-200/45 text-center">
+                      {mpError}
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="space-y-1.5 text-xs p-3 bg-white rounded-2xl border border-slate-150">
+                        <div className="flex justify-between items-center text-[11px]">
+                          <span className="text-[#64748b] font-medium">ID da Preferência:</span>
+                          <span className="font-mono text-slate-800 font-black truncate max-w-[200px] bg-slate-100 px-1.5 py-0.5 rounded">
+                            {mpPreferenceId || 'Simulação de Sandbox'}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center text-[11px]">
+                          <span className="text-[#64748b] font-medium">Método Disponibilizado:</span>
+                          <span className="font-bold text-slate-800">Pix & Cartão (Estorno Ativo)</span>
+                        </div>
+                        <div className="flex justify-between items-center text-[11px]">
+                          <span className="text-[#64748b] font-medium">Fluxo Integrado:</span>
+                          <span className="text-emerald-700 font-extrabold uppercase text-[10px]">Página Segura (Sandbox)</span>
+                        </div>
+                      </div>
+                      
+                      {mpInitPoint && (
+                        <div className="space-y-1.5">
+                          <a 
+                            href={mpInitPoint} 
+                            target="_blank" 
+                            rel="noreferrer"
+                            className="bg-sky-500 hover:bg-sky-600 text-white font-extrabold text-center block py-4 px-4 rounded-2xl transition duration-150 shadow-lg shadow-sky-150/40 flex items-center justify-center gap-2.5 cursor-pointer text-xs uppercase tracking-wider"
+                          >
+                            <span>🛒</span> Abrir Checkout de Teste (Mercado Pago)
+                          </a>
+                          <span className="text-[10px] leading-relaxed font-semibold text-[#64748b] block text-center">
+                            Clique acima para conferir o comportamento do Gateway da API em homologação.
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Expandable JSON payload block */}
+                      <details className="bg-white border border-slate-200 rounded-2xl p-2.5 transition">
+                        <summary className="cursor-pointer font-bold select-none text-slate-650 py-0.5 px-1 hover:text-slate-900 text-[11px] list-none flex items-center justify-between">
+                          <span>📦 Ver JSON da Preferência do Mercado Pago</span>
+                          <span className="text-[10px] text-slate-400">Expandir +</span>
+                        </summary>
+                        <pre className="p-3 bg-slate-900 text-[10px] text-emerald-400 rounded-xl overflow-x-auto mt-2 max-h-44 text-left font-mono">
+{JSON.stringify({
+  preference_id: mpPreferenceId,
+  init_point: mpInitPoint,
+  status: "sandbox_test_mode",
+  payer: {
+    email: 'scjorge1908@gmail.com',
+    name: professionalName || 'Dr(a). Visitante'
+  },
+  items: recentBookings.map(b => ({
+    title: `Sublocação: ${b.roomName}`,
+    unit_price: b.totalValue,
+    quantity: 1
+  }))
+}, null, 2)}
+                        </pre>
+                      </details>
+                    </div>
+                  )}
                 </div>
 
                 {/* Interactive Method Tabs */}

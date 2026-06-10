@@ -408,7 +408,7 @@ export default function ProfessionalPortalView({
                 Você não possui reservas futuras ativas no momento para este profissional.
               </p>
               <button
-                onClick={() => setView('home')}
+                onClick={() => setView('booking')}
                 className="inline-flex items-center gap-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-800 font-bold text-xs rounded-xl transition cursor-pointer"
               >
                 <Plus className="w-4 h-4 text-slate-600" />
@@ -427,7 +427,7 @@ export default function ProfessionalPortalView({
           <div className="grid grid-cols-1 gap-2.5">
             {/* Action 1: Nova Reserva */}
             <button
-              onClick={() => setView('home')}
+              onClick={() => setView('booking')}
               className="flex items-center justify-between p-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-850 font-sans font-bold text-xs text-left transition duration-150"
             >
               <div className="flex items-center gap-3">
