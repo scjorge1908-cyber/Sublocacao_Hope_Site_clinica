@@ -30,23 +30,30 @@ export default function App() {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (!parsed.tableOfPrices) {
-          parsed.tableOfPrices = { ...INITIAL_ADMIN_SETTINGS.tableOfPrices };
+        if (parsed && typeof parsed === 'object') {
+          const mergedSettings = {
+            ...INITIAL_ADMIN_SETTINGS,
+            ...parsed,
+            tableOfPrices: {
+              ...INITIAL_ADMIN_SETTINGS.tableOfPrices,
+              ...(parsed.tableOfPrices || {})
+            }
+          };
+          if (
+            mergedSettings.heroTitle === 'Seu consultório profissional, pronto para atender.' || 
+            mergedSettings.heroTitle === 'Um consultório preparado para cuidar de quem precisa ser ouvido.'
+          ) {
+            mergedSettings.heroTitle = INITIAL_ADMIN_SETTINGS.heroTitle;
+          }
+          if (mergedSettings.heroDescription !== INITIAL_ADMIN_SETTINGS.heroDescription) {
+            mergedSettings.heroDescription = INITIAL_ADMIN_SETTINGS.heroDescription;
+          }
+          if (!mergedSettings.bookingRoomsHeading || mergedSettings.bookingRoomsHeading.includes('Disponibilidade Clínica') || mergedSettings.bookingRoomsHeading === 'Disponibilidade de Horário.' || mergedSettings.bookingRoomsHeading !== INITIAL_ADMIN_SETTINGS.bookingRoomsHeading) {
+            mergedSettings.bookingRoomsHeading = INITIAL_ADMIN_SETTINGS.bookingRoomsHeading;
+          }
+          localStorage.setItem('sublocahope_settings', JSON.stringify(mergedSettings));
+          return mergedSettings;
         }
-        if (
-          parsed.heroTitle === 'Seu consultório profissional, pronto para atender.' || 
-          parsed.heroTitle === 'Um consultório preparado para cuidar de quem precisa ser ouvido.'
-        ) {
-          parsed.heroTitle = INITIAL_ADMIN_SETTINGS.heroTitle;
-        }
-        if (parsed.heroDescription !== INITIAL_ADMIN_SETTINGS.heroDescription) {
-          parsed.heroDescription = INITIAL_ADMIN_SETTINGS.heroDescription;
-        }
-        if (!parsed.bookingRoomsHeading || parsed.bookingRoomsHeading.includes('Disponibilidade Clínica') || parsed.bookingRoomsHeading === 'Disponibilidade de Horário.' || parsed.bookingRoomsHeading !== INITIAL_ADMIN_SETTINGS.bookingRoomsHeading) {
-          parsed.bookingRoomsHeading = INITIAL_ADMIN_SETTINGS.bookingRoomsHeading;
-        }
-        localStorage.setItem('sublocahope_settings', JSON.stringify(parsed));
-        return parsed;
       } catch (e) {
         console.warn("Erro ao fazer parse dos adminSettings cacheados, usando padrão:", e);
       }
@@ -55,14 +62,19 @@ export default function App() {
   });
 
   const [bookings, setBookings] = useState<Booking[]>(() => {
-    const saved = localStorage.getItem('sublocahope_bookings');
-    return saved ? JSON.parse(saved) : [];
+    try {
+      const saved = localStorage.getItem('sublocahope_bookings');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch (e) {
+      console.warn("Erro ao fazer parse de bookings:", e);
+    }
+    return [];
   });
 
   const [registeredUsers, setRegisteredUsers] = useState<ProfessionalProfile[]>(() => {
-    const saved = localStorage.getItem('sublocahope_users');
-    if (saved) return JSON.parse(saved);
-    
     // Default pre-filled users to ensure a feature-rich admin dashboard on load
     const defaultUser: ProfessionalProfile = {
       name: 'Dr. Roberto Silva',
@@ -91,13 +103,30 @@ export default function App() {
       acceptedTermsDate: '04/06/2026, 14:32',
       approvalStatus: 'Aprovado'
     };
+
+    try {
+      const saved = localStorage.getItem('sublocahope_users');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch (e) {
+      console.warn("Erro ao fazer parse dos usuários salvos:", e);
+    }
     
     return [defaultUser, anotherUser];
   });
 
   const [activeUser, setActiveUser] = useState<ProfessionalProfile | null>(() => {
-    const saved = localStorage.getItem('sublocahope_user');
-    return saved ? JSON.parse(saved) : null;
+    try {
+      const saved = localStorage.getItem('sublocahope_user');
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (e) {
+      console.warn("Erro ao fazer parse do usuário ativo:", e);
+    }
+    return null;
   });
 
   // Track currently selected room for booking page
