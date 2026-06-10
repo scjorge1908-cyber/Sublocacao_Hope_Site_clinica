@@ -31,8 +31,7 @@ import {
   Sofa, 
   Gamepad, 
   Video, 
-  ArrowUpDown,
-  Toilet
+  ArrowUpDown
 } from 'lucide-react';
 import { Room, Booking, AdminSettings } from '../types';
 import { TIME_SLOTS, INITIAL_ROOMS } from '../data';
@@ -42,7 +41,7 @@ export function getAmenityIcon(label: string, className = "w-3.5 h-3.5 text-blac
   if (norm.includes('wi-fi') || norm.includes('wifi')) return <Wifi className={className} />;
   if (norm.includes('copa') || norm.includes('café') || norm.includes('cafe')) return <Coffee className={className} />;
   if (norm.includes('estacionamento')) return <Car className={className} />;
-  if (norm.includes('banheiro')) return <Toilet className={className} />;
+  if (norm.includes('banheiro')) return <Bath className={className} />;
   if (norm.includes('climatizado') || norm.includes('ar-condicionado')) return <Wind className={className} />;
   if (norm.includes('acústico') || norm.includes('isolamento')) return <VolumeX className={className} />;
   if (norm.includes('recepção') || norm.includes('espera')) return <Sofa className={className} />;

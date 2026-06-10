@@ -822,7 +822,7 @@ export default function ProfessionalPortalView({
                 </span>
                 <select 
                   value={editApprovalStatus}
-                  onChange={(e) => setEditApprovalStatus(e.target.value)}
+                  onChange={(e) => setEditApprovalStatus(e.target.value as 'Pendente' | 'Aprovado' | 'Rejeitado')}
                   className="w-full px-3 py-1.5 border border-purple-200 rounded bg-white text-xs font-bold text-purple-950 outline-none"
                 >
                   <option value="Aprovado">Aprovado (Cadastro ativo)</option>

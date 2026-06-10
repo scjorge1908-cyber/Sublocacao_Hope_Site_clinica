@@ -1,6 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 @import "tailwindcss";
-
 @theme {
   --font-sans: "Inter", sans-serif;
   --color-primary: #0e4269;
@@ -13,19 +12,8 @@
   --color-surface-container-low: #f0f3ff;
   --color-outline-alt: #c2c7cf;
 }
-
 body {
   background-color: var(--color-brand-bg);
   color: var(--color-brand-text);
   font-family: var(--font-sans);
 }
-
-/* Custom horizontal scroll bar hidden */
-.hide-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-.hide-scrollbar {
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
-}
-

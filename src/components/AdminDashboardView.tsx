@@ -3,7 +3,7 @@ import {
   Key, Database, FileEdit, LayoutDashboard, Search, Calendar, CreditCard, 
   Settings, CheckCircle, TrendingUp, Sparkles, Upload, Eye, Trash2, ShieldCheck, RefreshCw,
   Plus, Coffee, Music, Wind, Gamepad, MapPin, Users, Bath, Sofa, Check, X, ShieldAlert, User, Phone, FileText,
-  Smartphone, QrCode, Apple, Star, Wifi, Car, VolumeX, Baby, Video, ArrowUpDown, HelpCircle, Maximize, Toilet,
+  Smartphone, QrCode, Apple, Star, Wifi, Car, VolumeX, Baby, Video, ArrowUpDown, HelpCircle, Maximize,
   SlidersHorizontal, Camera, Image
 } from 'lucide-react';
 import { Booking, AdminSettings, Room, ProfessionalProfile } from '../types';
