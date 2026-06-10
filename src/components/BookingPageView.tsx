@@ -386,43 +386,109 @@ export default function BookingPageView({
       return updated ? next : prev;
     });
 
-    const appScriptId = adminSettings?.appScriptId || 'AKfycbzyX2H8fVL_dVyf4kNliZh8hHnoTBjUN';
+    const scriptId = adminSettings?.appScriptId && adminSettings.appScriptId !== 'AKfycbzyX2H8fVL_dVyf4kNliZh8hHnoTBjUN'
+      ? adminSettings.appScriptId
+      : 'AKfycbzAFVrhN1e0TLdtptqYi573psMPe8jDz82d5DrwtvTN7Fl6Dh2FMdtBuer5vMqxvKs8';
     
+    const SCRIPT_URL = `https://script.google.com/macros/s/${scriptId}/exec`;
+
+    const mapResponseToSlots = (data: any): typeof TIME_SLOTS => {
+      if (Array.isArray(data) && data.length > 0 && typeof data[0] === 'object' && 'time' in data[0]) {
+        return data as typeof TIME_SLOTS;
+      }
+      
+      if (data && (Array.isArray(data.availableSlots) || Array.isArray(data.reservedSlots) || Array.isArray(data.allSlots))) {
+        const slotsToMap = Array.isArray(data.allSlots) && data.allSlots.length > 0
+          ? data.allSlots
+          : ['07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'];
+          
+        return slotsToMap.map((t: string) => {
+          let isReserved = false;
+          if (Array.isArray(data.reservedSlots)) {
+            isReserved = data.reservedSlots.includes(t);
+          } else if (Array.isArray(data.availableSlots)) {
+            isReserved = !data.availableSlots.includes(t);
+          }
+          return { time: t, reserved: isReserved };
+        });
+      }
+      
+      if (Array.isArray(data)) {
+        return data as typeof TIME_SLOTS;
+      }
+      
+      return [];
+    };
+
     // Fetch or generate schedule slots for ALL combinations of selected dates & all 6 rooms
     const queryPromises = [];
     for (const room of allRooms) {
       for (const dStr of selectedDates) {
-        const proxyUrl = `/api/slots?room=${encodeURIComponent(room.id)}&date=${encodeURIComponent(dStr)}`;
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 3500);
-
-        const promise = fetch(proxyUrl, { signal: controller.signal })
-          .then((res) => {
-            if (!res.ok) throw new Error();
-            return res.json();
-          })
-          .then((data) => {
-            clearTimeout(timeoutId);
-            if (Array.isArray(data) && data.length > 0) {
-              return { key: `${room.id}#${dStr}`, slots: data };
-            }
-            throw new Error();
-          })
-          .catch(() => {
-            clearTimeout(timeoutId);
-            // Fallback: simular horários se falhar
-            const dateSeed = dStr.split('-').reduce((sum, val) => sum + Number(val), 0);
-            const roomSeed = room.id.charCodeAt(room.id.length - 1);
+        
+        const promise = (async () => {
+          // 1. Try Direct POST request first (CORS is configured on Google Apps Script)
+          try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 3500);
             
-            const seededSlots = TIME_SLOTS.map((s, index) => {
-              const isReserved = (dateSeed + roomSeed + index * 17) % 3 === 0;
-              return {
-                ...s,
-                reserved: isReserved
-              };
+            const response = await fetch(SCRIPT_URL, {
+              method: 'POST',
+              mode: 'cors',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                action: 'getSlots',
+                room: room.id,
+                date: dStr
+              }),
+              signal: controller.signal
             });
-            return { key: `${room.id}#${dStr}`, slots: seededSlots };
+            clearTimeout(timeoutId);
+            
+            if (response.ok) {
+              const data = await response.json();
+              const mapped = mapResponseToSlots(data);
+              if (mapped && mapped.length > 0) {
+                return { key: `${room.id}#${dStr}`, slots: mapped };
+              }
+            }
+          } catch (e: any) {
+            console.warn(`[Direct POST slot fetch failed for ${room.id} on ${dStr}]`, e.message);
+          }
+
+          // 2. Fallback to API proxy (CORS Bypass proxy)
+          try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 3500);
+            const proxyUrl = `/api/slots?room=${encodeURIComponent(room.id)}&date=${encodeURIComponent(dStr)}`;
+            
+            const response = await fetch(proxyUrl, { signal: controller.signal });
+            clearTimeout(timeoutId);
+            
+            if (response.ok) {
+              const data = await response.json();
+              const mapped = mapResponseToSlots(data);
+              if (mapped && mapped.length > 0) {
+                return { key: `${room.id}#${dStr}`, slots: mapped };
+              }
+            }
+          } catch (e: any) {
+            console.warn(`[Proxy slot fetch failed for ${room.id} on ${dStr}]`, e.message);
+          }
+
+          // 3. Fallback: simular horários offline determinísticos
+          const dateSeed = dStr.split('-').reduce((sum, val) => sum + Number(val), 0);
+          const roomSeed = room.id.charCodeAt(room.id.length - 1);
+          
+          const seededSlots = TIME_SLOTS.map((s, index) => {
+            const isReserved = (dateSeed + roomSeed + index * 17) % 3 === 0;
+            return {
+              ...s,
+              reserved: isReserved
+            };
           });
+          return { key: `${room.id}#${dStr}`, slots: seededSlots };
+        })();
+
         queryPromises.push(promise);
       }
     }

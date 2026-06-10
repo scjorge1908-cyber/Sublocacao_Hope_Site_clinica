@@ -321,30 +321,58 @@ async function startServer() {
     }
   });
 
-  // 6. PROXIED GOOGLE APPS SCRIPT SLOTS FETCHING (CORS Bypass)
+  // 6. PROXIED GOOGLE APPS SCRIPT SLOTS FETCHING (CORS Bypass via POST or GET)
   app.get("/api/slots", async (req: any, res: any) => {
     try {
       const room = req.query.room || "";
       const date = req.query.date || "";
       
-      const targetUrl = `https://script.google.com/macros/s/AKfycbzAFVrhN1e0TLdtptqYi573psMPe8jDz82d5DrwtvTN7Fl6Dh2FMdtBuer5vMqxvKs8/exec?action=getSlots&room=${encodeURIComponent(room)}&date=${encodeURIComponent(date)}`;
+      const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzAFVrhN1e0TLdtptqYi573psMPe8jDz82d5DrwtvTN7Fl6Dh2FMdtBuer5vMqxvKs8/exec';
       
-      console.log(`[Proxy Link] Buscando slots no Google Apps Script: Room=${room}, Date=${date}`);
+      console.log(`[Proxy Link] Buscando slots no Google Apps Script via POST: Room=${room}, Date=${date}`);
       
+      // Try POST first as configured by the user
       try {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 2500);
+        
+        const response = await fetch(SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'getSlots',
+            room: room,
+            date: date
+          }),
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log(`[Proxy Link POST success] Retornou slots via POST para ${room}:`, data);
+          return res.json(data);
+        }
+      } catch (err: any) {
+        console.warn("[Proxy Link warning] POST falhou, tentando via GET...", err.message);
+      }
+
+      // Try GET as secondary backup
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 2000);
+        const targetUrl = `${SCRIPT_URL}?action=getSlots&room=${encodeURIComponent(room)}&date=${encodeURIComponent(date)}`;
         
         const response = await fetch(targetUrl, { signal: controller.signal });
         clearTimeout(timeoutId);
         
         if (response.ok) {
           const data = await response.json();
-          console.log(`[Proxy Link success] Retornou slots do Apps Script para ${room}:`, data);
+          console.log(`[Proxy Link GET success] Retornou slots via GET para ${room}:`, data);
           return res.json(data);
         }
       } catch (err: any) {
-        console.warn("[Proxy Link warning] Apps Script URL falhou ou estourou timeout, usando gerador offline robusto:", err.message);
+        console.warn("[Proxy Link warning] GET falhou também. Usando gerador offline robusto:", err.message);
       }
       
       // Fallback robusto local se falhado ou offline
