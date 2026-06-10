@@ -28,23 +28,28 @@ export default function App() {
   const [adminSettings, setAdminSettings] = useState<AdminSettings>(() => {
     const saved = localStorage.getItem('sublocahope_settings');
     if (saved) {
-      const parsed = JSON.parse(saved);
-      if (
-        parsed.heroTitle === 'Seu consultório profissional, pronto para atender.' || 
-        parsed.heroTitle === 'Um consultório preparado para cuidar de quem precisa ser ouvido.'
-      ) {
-        parsed.heroTitle = INITIAL_ADMIN_SETTINGS.heroTitle;
+      try {
+        const parsed = JSON.parse(saved);
+        if (!parsed.tableOfPrices) {
+          parsed.tableOfPrices = { ...INITIAL_ADMIN_SETTINGS.tableOfPrices };
+        }
+        if (
+          parsed.heroTitle === 'Seu consultório profissional, pronto para atender.' || 
+          parsed.heroTitle === 'Um consultório preparado para cuidar de quem precisa ser ouvido.'
+        ) {
+          parsed.heroTitle = INITIAL_ADMIN_SETTINGS.heroTitle;
+        }
+        if (parsed.heroDescription !== INITIAL_ADMIN_SETTINGS.heroDescription) {
+          parsed.heroDescription = INITIAL_ADMIN_SETTINGS.heroDescription;
+        }
+        if (!parsed.bookingRoomsHeading || parsed.bookingRoomsHeading.includes('Disponibilidade Clínica') || parsed.bookingRoomsHeading === 'Disponibilidade de Horário.' || parsed.bookingRoomsHeading !== INITIAL_ADMIN_SETTINGS.bookingRoomsHeading) {
+          parsed.bookingRoomsHeading = INITIAL_ADMIN_SETTINGS.bookingRoomsHeading;
+        }
         localStorage.setItem('sublocahope_settings', JSON.stringify(parsed));
+        return parsed;
+      } catch (e) {
+        console.warn("Erro ao fazer parse dos adminSettings cacheados, usando padrão:", e);
       }
-      if (parsed.heroDescription !== INITIAL_ADMIN_SETTINGS.heroDescription) {
-        parsed.heroDescription = INITIAL_ADMIN_SETTINGS.heroDescription;
-        localStorage.setItem('sublocahope_settings', JSON.stringify(parsed));
-      }
-      if (!parsed.bookingRoomsHeading || parsed.bookingRoomsHeading.includes('Disponibilidade Clínica') || parsed.bookingRoomsHeading === 'Disponibilidade de Horário.' || parsed.bookingRoomsHeading !== INITIAL_ADMIN_SETTINGS.bookingRoomsHeading) {
-        parsed.bookingRoomsHeading = INITIAL_ADMIN_SETTINGS.bookingRoomsHeading;
-        localStorage.setItem('sublocahope_settings', JSON.stringify(parsed));
-      }
-      return parsed;
     }
     return INITIAL_ADMIN_SETTINGS;
   });
@@ -125,13 +130,14 @@ export default function App() {
     
     // Dynamically update room prices in rooms array when admin modifications are published!
     setRooms(prevRooms => {
+      const table = adminSettings?.tableOfPrices || INITIAL_ADMIN_SETTINGS.tableOfPrices;
       return prevRooms.map(r => {
         if (r.type === 'standard') {
-          return { ...r, pricePerHour: adminSettings.tableOfPrices.standard };
+          return { ...r, pricePerHour: table?.standard || 45 };
         } else if (r.type === 'premium') {
-          return { ...r, pricePerHour: adminSettings.tableOfPrices.premium };
+          return { ...r, pricePerHour: table?.premium || 75 };
         } else if (r.type === 'executivo_luxo') {
-          return { ...r, pricePerHour: adminSettings.tableOfPrices.executivo_luxo };
+          return { ...r, pricePerHour: table?.executivo_luxo || 120 };
         }
         return r;
       });

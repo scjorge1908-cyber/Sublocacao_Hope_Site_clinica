@@ -70,10 +70,10 @@ export default function AdminDashboardView({
   const [webhookSecret, setWebhookSecret] = useState(adminSettings.webhookSecret);
   const [isProductionMode, setIsProductionMode] = useState(adminSettings.isProductionMode);
   
-  const [standardPrice, setStandardPrice] = useState(adminSettings.tableOfPrices.standard);
-  const [premiumPrice, setPremiumPrice] = useState(adminSettings.tableOfPrices.premium);
-  const [auditoriumPrice, setAuditoriumPrice] = useState(adminSettings.tableOfPrices.auditorium);
-  const [executivoLuxoPrice, setExecutivoLuxoPrice] = useState(adminSettings.tableOfPrices.executivo_luxo);
+  const [standardPrice, setStandardPrice] = useState(adminSettings?.tableOfPrices?.standard ?? 45);
+  const [premiumPrice, setPremiumPrice] = useState(adminSettings?.tableOfPrices?.premium ?? 75);
+  const [auditoriumPrice, setAuditoriumPrice] = useState(adminSettings?.tableOfPrices?.auditorium ?? 280);
+  const [executivoLuxoPrice, setExecutivoLuxoPrice] = useState(adminSettings?.tableOfPrices?.executivo_luxo ?? 120);
 
   const [heroTitle, setHeroTitle] = useState(adminSettings.heroTitle);
   const [heroDescription, setHeroDescription] = useState(adminSettings.heroDescription);
