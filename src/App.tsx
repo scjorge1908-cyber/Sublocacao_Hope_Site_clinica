@@ -155,6 +155,55 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
   }, [currentView]);
 
+  // Registra rotina de teste de integração no console do navegador para validação
+  useEffect(() => {
+    (window as any).testarIntegracaoCompleta = async () => {
+      console.log('🧪 TESTANDO INTEGRAÇÃO COMPLETA COM GOOGLE APPS SCRIPT & PROXY NODE.JS');
+      
+      // Teste 1: Buscar horários (via proxy integrado)
+      try {
+        console.log('Iniciando Teste 1: Obtendo slots por meio do proxy seguro de contorno de CORS...');
+        const response = await fetch('/api/slots?room=room-01&date=15/12/2026');
+        const dados = await response.json();
+        console.log('✅ Retorno GET /api/slots recebido do proxy:', dados);
+      } catch (error: any) {
+        console.error('❌ Erro no GET de horários:', error);
+      }
+      
+      // Teste 2: Enviar cadastro (via HTML Form invisível de contorno)
+      try {
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzAFVrhN1e0TLdtptqYi573psMPe8jDz82d5DrwtvTN7Fl6Dh2FMdtBuer5vMqxvKs8/exec';
+        console.log('Iniciando Teste 2: Sincronizando cadastro com Apps Script no URL:', SCRIPT_URL);
+        
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = SCRIPT_URL;
+        form.target = 'hiddenFrame';
+        form.style.display = 'none';
+        
+        const input = document.createElement('input');
+        input.name = 'postData';
+        input.value = JSON.stringify({
+          tipo: 'cadastro',
+          nomeCompleto: 'Teste Hub Integrador',
+          email: 'teste-hub@clinica.com',
+          telefone: '(48) 99999-9999',
+          registroConselho: 'TESTE/SC 999'
+        });
+        
+        form.appendChild(input);
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
+        
+        console.log('✅ POST /cadastro despachado via Form invisível com sucesso.');
+        console.log('Consulte as planilhas do seu Google Sheets e canais de automação configurados no Google Apps Script para confirmar a sincronização.');
+      } catch (e: any) {
+        console.error('❌ Erro de processamento:', e);
+      }
+    };
+  }, []);
+
   // State actions
   const handleAddBooking = (newBooking: Booking) => {
     setBookings((prev) => [newBooking, ...prev]);
