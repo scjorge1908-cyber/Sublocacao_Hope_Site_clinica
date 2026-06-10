@@ -168,22 +168,33 @@ export default function RegisterPageView({
 
     onRegister(newProfile);
     
-    // Notify registration via webhook
-    const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbwuCOimY2_91TvyrTwjzWVGSfexIQ0lg1DGeksYwWdo3_Vge5oGJMGnvgUJA8wmZvM/exec";
-    fetch(WEBHOOK_URL, {
-      method: "POST",
-      mode: "no-cors",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        tipo: "cadastro",
+    // Notify registration via HTML Form to Google Apps Script bypassing CORS
+    try {
+      const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzAFVrhN1e0TLdtptqYi573psMPe8jDz82d5DrwtvTN7Fl6Dh2FMdtBuer5vMqxvKs8/exec";
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = SCRIPT_URL;
+      form.target = 'hiddenFrame';
+      form.style.display = 'none';
+      
+      const input = document.createElement('input');
+      input.name = 'postData';
+      input.value = JSON.stringify({
+        tipo: 'cadastro',
         nomeCompleto: name,
         email: email,
         telefone: phone,
         registroConselho: registerNum
-      })
-    })
-    .then(() => console.log("Cadastro notificado com sucesso!"))
-    .catch((err) => console.error("Erro ao notificar cadastro:", err));
+      });
+      
+      form.appendChild(input);
+      document.body.appendChild(form);
+      form.submit();
+      document.body.removeChild(form);
+      console.log("Cadastro enviado via Form para o Google Apps Script");
+    } catch (err) {
+      console.error("Erro ao enviar cadastro via Form:", err);
+    }
 
     setIsSubmitSuccess(true);
   };

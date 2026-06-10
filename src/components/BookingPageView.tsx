@@ -392,11 +392,11 @@ export default function BookingPageView({
     const queryPromises = [];
     for (const room of allRooms) {
       for (const dStr of selectedDates) {
-        const appScriptUrl = `https://script.google.com/macros/s/${appScriptId}/exec?action=getSlots&room=${encodeURIComponent(room.id)}&date=${dStr}`;
+        const proxyUrl = `/api/slots?room=${encodeURIComponent(room.id)}&date=${encodeURIComponent(dStr)}`;
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 1200);
+        const timeoutId = setTimeout(() => controller.abort(), 3500);
 
-        const promise = fetch(appScriptUrl, { signal: controller.signal })
+        const promise = fetch(proxyUrl, { signal: controller.signal })
           .then((res) => {
             if (!res.ok) throw new Error();
             return res.json();
@@ -410,7 +410,7 @@ export default function BookingPageView({
           })
           .catch(() => {
             clearTimeout(timeoutId);
-            // High durability database simulations syncing flawlessly with custom logic
+            // Fallback: simular horários se falhar
             const dateSeed = dStr.split('-').reduce((sum, val) => sum + Number(val), 0);
             const roomSeed = room.id.charCodeAt(room.id.length - 1);
             
@@ -638,7 +638,7 @@ export default function BookingPageView({
       onAddBooking(b);
     });
 
-    // Notify payment via webhook
+    // Notify payment via HTML Form to Google Apps Script bypassing CORS
     try {
       const totalValue = bookings.reduce((sum, b) => sum + b.totalValue, 0);
       const hasTaxaFlex = reimbursementInsurance && activeProtectedSlotsCount > 0;
@@ -657,25 +657,35 @@ export default function BookingPageView({
         });
       });
 
-      const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbwuCOimY2_91TvyrTwjzWVGSfexIQ0lg1DGeksYwWdo3_Vge5oGJMGnvgUJA8wmZvM/exec";
-      fetch(WEBHOOK_URL, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          tipo: "pagamento",
-          profissionalNome: professionalName || bookings[0]?.professionalName || 'Profissional',
-          valorTotal: totalValue.toFixed(2).replace('.', ','),
-          formaPagamento: selectedPaymentMethod === 'pix' ? 'pix' : 'cartao',
-          taxaFlexivel: hasTaxaFlex ? "Sim" : "Não",
-          valorTaxa: (activeProtectedSlotsCount * 9.90).toFixed(2).replace('.', ','),
-          itens: itemsList
-        })
-      })
-      .then(() => console.log("Pagamento notificado com sucesso!"))
-      .catch((err) => console.error("Erro ao notificar pagamento via webhook:", err));
+      const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzAFVrhN1e0TLdtptqYi573psMPe8jDz82d5DrwtvTN7Fl6Dh2FMdtBuer5vMqxvKs8/exec";
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = SCRIPT_URL;
+      form.target = 'hiddenFrame';
+      form.style.display = 'none';
+      
+      const input = document.createElement('input');
+      input.name = 'postData';
+      
+      const payload = {
+        tipo: 'pagamento',
+        profissionalNome: professionalName || bookings[0]?.professionalName || 'Profissional',
+        valorTotal: totalValue.toFixed(2).replace('.', ','),
+        formaPagamento: selectedPaymentMethod === 'pix' ? 'pix' : 'cartao',
+        taxaFlexivel: hasTaxaFlex ? 'Sim' : 'Não',
+        valorTaxa: (activeProtectedSlotsCount * 9.90).toFixed(2).replace('.', ','),
+        sala: bookings[0]?.roomName || 'Geral',
+        itens: itemsList
+      };
+
+      input.value = JSON.stringify(payload);
+      form.appendChild(input);
+      document.body.appendChild(form);
+      form.submit();
+      document.body.removeChild(form);
+      console.log("Notificação de pagamento enviada com sucesso ao Google Apps Script via Form target.");
     } catch (e) {
-      console.error("Erro ao preparar notificação de pagamento:", e);
+      console.error("Erro ao notificar pagamento pelo Apps Script:", e);
     }
 
     setIsPaid(true);
