@@ -71,8 +71,18 @@ export default function ProfessionalPortalView({
 
   // Track mock payment statuses specifically for simulated session
   const [paidBookingIds, setPaidBookingIds] = useState<string[]>(() => {
-    const saved = localStorage.getItem('sublocahope_paid_booking_ids');
-    return saved ? JSON.parse(saved) : [];
+    try {
+      const saved = localStorage.getItem('sublocahope_paid_booking_ids');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed;
+        }
+      }
+    } catch (e) {
+      console.warn("Erro ao fazer parse dos ids de pagramentos:", e);
+    }
+    return [];
   });
 
   // Load and sync edit fields when activeUser changes

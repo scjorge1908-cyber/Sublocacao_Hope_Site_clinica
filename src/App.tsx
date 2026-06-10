@@ -15,12 +15,16 @@ export default function App() {
   const [currentView, setView] = useState<string>('home'); // Views: 'home', 'booking', 'admin', 'register'
   
   const [rooms, setRooms] = useState<Room[]>(() => {
-    const saved = localStorage.getItem('sublocahope_rooms');
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (parsed && parsed.length > 0) {
-        return parsed;
+    try {
+      const saved = localStorage.getItem('sublocahope_rooms');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
       }
+    } catch (e) {
+      console.warn("Erro ao fazer parse de rooms salvas:", e);
     }
     return INITIAL_ROOMS;
   });

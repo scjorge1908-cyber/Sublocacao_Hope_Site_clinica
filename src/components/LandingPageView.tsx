@@ -85,7 +85,7 @@ export default function LandingPageView({ rooms, adminSettings, setView, onSelec
                   {/* Room Image */}
                   <div className="h-48 overflow-hidden bg-slate-100 relative">
                     <img
-                      src={room.images[0]}
+                      src={room.images && room.images.length > 0 ? room.images[0] : "https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&q=80&w=1200"}
                       alt={room.name}
                       className="w-full h-full object-cover transition-all"
                       style={room.imageSettings ? {
@@ -97,7 +97,7 @@ export default function LandingPageView({ rooms, adminSettings, setView, onSelec
                     />
                     <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-md px-2.5 py-1 rounded-full text-xs font-bold text-secondary border border-secondary/10 flex items-center gap-1 shadow-sm">
                       <Star className="w-3.5 h-3.5 fill-secondary text-secondary" />
-                      <span>{room.rating.toFixed(1)}</span>
+                      <span>{(room.rating ?? 5.0).toFixed(1)}</span>
                     </div>
                   </div>
 
@@ -112,11 +112,11 @@ export default function LandingPageView({ rooms, adminSettings, setView, onSelec
                       {room.name}
                     </h3>
                     <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-brand-variant font-medium">
-                      {room.features.map((feat, i) => (
+                      {(room.features || []).map((feat, i) => (
                         <span key={i} className="flex items-center gap-1.5 whitespace-nowrap">
                           {getAmenityIcon(feat, "w-3.5 h-3.5 text-secondary")}
                           <span>{cleanAmenityLabel(feat)}</span>
-                          {i < room.features.length - 1 && <span className="text-black/15 ml-1 select-none">•</span>}
+                          {i < (room.features || []).length - 1 && <span className="text-black/15 ml-1 select-none">•</span>}
                         </span>
                       ))}
                     </div>
@@ -131,7 +131,7 @@ export default function LandingPageView({ rooms, adminSettings, setView, onSelec
                     <div className="text-left">
                       <span className="text-[10px] text-brand-variant font-extrabold uppercase tracking-widest block">Sublocação</span>
                       <p className="font-sans font-black text-xl text-primary">
-                        R$ {room.pricePerHour.toFixed(2).replace('.', ',')} <span className="text-xs font-normal text-brand-variant">/h</span>
+                        R$ {(room.pricePerHour ?? 45).toFixed(2).replace('.', ',')} <span className="text-xs font-normal text-brand-variant">/h</span>
                       </p>
                     </div>
                     <button

@@ -1062,7 +1062,7 @@ export default function BookingPageView({
               {/* Room Card Image Header */}
               <div className="h-48 w-full overflow-hidden relative group">
                 <img
-                  src={room.images[0]}
+                  src={room.images && room.images.length > 0 ? room.images[0] : "https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&q=80&w=1200"}
                   alt={room.name}
                   className="w-full h-full object-cover transition-all"
                   style={room.imageSettings ? {
@@ -1080,11 +1080,11 @@ export default function BookingPageView({
                 
                 <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-xs text-primary text-xs font-bold px-2 py-1 rounded-xl flex items-center gap-1 shadow">
                   <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                  <span>{room.rating.toFixed(1)}</span>
+                  <span>{(room.rating ?? 5.0).toFixed(1)}</span>
                 </div>
 
                 <div className="absolute bottom-3 left-3 bg-black/70 backdrop-blur-xs text-white text-xs font-bold px-3 py-1 rounded-lg">
-                  R$ {room.pricePerHour.toFixed(2).replace('.', ',')} / hora
+                  R$ {(room.pricePerHour ?? 45).toFixed(2).replace('.', ',')} / hora
                 </div>
               </div>
 
@@ -1095,11 +1095,11 @@ export default function BookingPageView({
                     {room.name}
                   </h3>
                   <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-brand-variant font-medium">
-                    {room.features.map((feat, i) => (
+                    {(room.features || []).map((feat, i) => (
                       <span key={i} className="flex items-center gap-1.5 whitespace-nowrap">
                         {getAmenityIcon(feat, "w-3.5 h-3.5 text-secondary")}
                         <span>{cleanAmenityLabel(feat)}</span>
-                        {i < room.features.length - 1 && <span className="text-black/15 ml-1 select-none">•</span>}
+                        {i < (room.features || []).length - 1 && <span className="text-black/15 ml-1 select-none">•</span>}
                       </span>
                     ))}
                   </div>
