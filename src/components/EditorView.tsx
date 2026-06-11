@@ -500,11 +500,11 @@ export default function EditorView({ adminSettings, rooms, onUpdateSettings, set
                           </h4>
 
                           <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[10px] text-brand-variant font-medium">
-                            {room.features.slice(0, 3).map((feat, i) => (
+                            {(room.features || []).slice(0, 3).map((feat, i) => (
                               <span key={i} className="flex items-center gap-1 whitespace-nowrap">
                                 {getAmenityIcon(feat, "w-3 h-3 text-secondary")}
                                 <span className="text-[9px]">{cleanAmenityLabel(feat)}</span>
-                                {i < Math.min(room.features.length, 3) - 1 && <span className="text-black/10 select-none ml-0.5">•</span>}
+                                {i < Math.min((room.features || []).length, 3) - 1 && <span className="text-black/10 select-none ml-0.5">•</span>}
                               </span>
                             ))}
                           </div>

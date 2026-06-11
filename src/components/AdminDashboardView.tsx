@@ -1912,11 +1912,11 @@ export default function AdminDashboardView({
                         </h3>
 
                         <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-brand-variant font-medium">
-                          {room.features.map((feat, i) => (
+                          {(room.features || []).map((feat, i) => (
                             <span key={i} className="flex items-center gap-1.5 whitespace-nowrap">
                               {getAmenityIcon(feat, "w-3 h-3 text-secondary")}
                               <span>{cleanAmenityLabel(feat)}</span>
-                              {i < room.features.length - 1 && <span className="text-black/15 ml-1 select-none">•</span>}
+                              {i < (room.features || []).length - 1 && <span className="text-black/15 ml-1 select-none">•</span>}
                             </span>
                           ))}
                         </div>
